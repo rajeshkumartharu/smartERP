@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class ExaminationsConfig(AppConfig):
-    name = 'examinations'
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.examinations'

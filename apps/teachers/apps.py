@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class TeachersConfig(AppConfig):
-    name = 'teachers'
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.teachers'
