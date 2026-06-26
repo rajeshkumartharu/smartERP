@@ -1,0 +1,25 @@
+# Environment variables
+.env
+
+# Python virtual environment
+venv/
+erpVenv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# SQLite database (if using SQLite)
+db.sqlite3
+
+# Static and media files
+staticfiles/
+media/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
