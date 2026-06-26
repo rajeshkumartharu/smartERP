@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSchool — Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50:  '#EEEDFE',
+                            100: '#CECBF6',
+                            500: '#534AB7',
+                            600: '#3C3489',
+                            700: '#26215C',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .role-section { display: none; }
+        .role-section.active { display: block; }
+        .role-tab.active {
+            border-color: #534AB7;
+            background-color: #EEEDFE;
+            color: #534AB7;
+        }
+        input[type="file"] { padding: 6px 8px; }
+        select[multiple] { height: 90px; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 flex items-start justify-center py-10 px-4">
+
+<div class="w-full max-w-2xl bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center text-white text-lg font-semibold">S</div>
+        <span class="text-lg font-medium text-slate-800">SmartSchool</span>
+    </div>
+
+    <h2 class="text-xl font-medium text-slate-800 mb-1">Create account</h2>
+    <p class="text-sm text-slate-500 mb-6">Fill in the details below. Login credentials will be sent via email automatically.</p>
+
+    <!-- ============ ERROR DISPLAY ============ -->
+    {% if error %}
+    <div class="mb-5 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+        <p class="font-semibold mb-2">Please fix the following errors:</p>
+        <ul class="list-disc list-inside space-y-1">
+            {% for field, errors in error.items %}
+                {% for e in errors %}
+                    <li>
+                        {% if field != "__all__" %}
+                            <span class="font-medium capitalize">{{ field|cut:"_" }}:</span>
+                        {% endif %}
+                        {{ e }}
+                    </li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- ============ SUCCESS MESSAGE ============ -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="mb-5 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm font-medium">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" novalidate id="registerForm">
+        {% csrf_token %}
+
+        <!-- ============ COMMON INFORMATION ============ -->
+        <div class="text-xs font-medium tracking-widest uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">
+            Common information
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1">First name <span class="text-red-500">*</span></label>
+                <input type="text" name="first_name" value="{{ user_form.first_name.value|default:'' }}"
+                    placeholder="John"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1">Last name <span class="text-red-500">*</span></label>
+                <input type="text" name="last_name" value="{{ user_form.last_name.value|default:'' }}"
+                    placeholder="Doe"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-600 mb-1">Username <span class="text-red-500">*</span></label>
+            <input type="text" name="username" value="{{ user_form.username.value|default:'' }}"
+                placeholder="john.doe"
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate-600 mb-1">Email address <span class="text-red-500">*</span></label>
+            <input type="email" name="email" value="{{ user_form.email.value|default:'' }}"
+                placeholder="john@example.com"
+                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+            <p class="text-xs text-slate-400 mt-1">Auto-generated password will be sent to this address</p>
+        </div>
+
+        <!-- ============ ROLE SELECTION ============ -->
+        <div class="text-xs font-medium tracking-widest uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4 mt-6">
+            Select role
+        </div>
+
+        <div class="flex gap-3 mb-5" id="roleTabs">
+            <button type="button" data-role="student"
+                class="role-tab {% if selected_role == 'student' or not selected_role %}active{% endif %} flex-1 flex items-center justify-center gap-2 border border-slate-200 rounded-lg py-2.5 text-sm text-slate-500 transition-all duration-150 hover:bg-slate-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                Student
+            </button>
+            <button type="button" data-role="teacher"
+                class="role-tab {% if selected_role == 'teacher' %}active{% endif %} flex-1 flex items-center justify-center gap-2 border border-slate-200 rounded-lg py-2.5 text-sm text-slate-500 transition-all duration-150 hover:bg-slate-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Teacher
+            </button>
+            <button type="button" data-role="parent"
+                class="role-tab {% if selected_role == 'parent' %}active{% endif %} flex-1 flex items-center justify-center gap-2 border border-slate-200 rounded-lg py-2.5 text-sm text-slate-500 transition-all duration-150 hover:bg-slate-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Parent
+            </button>
+        </div>
+
+        <!-- Hidden role input — restored from server on error -->
+        <input type="hidden" name="role" id="roleInput" value="{{ selected_role|default:'student' }}">
+
+        <!-- ============ STUDENT SECTION ============ -->
+        <div id="section-student" class="role-section {% if selected_role == 'student' or not selected_role %}active{% endif %}">
+            <div class="flex items-center gap-2 mb-3 text-xs font-medium text-brand-500 bg-brand-50 px-3 py-1.5 rounded-lg w-fit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
+                Student details
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Student ID <span class="text-red-500">*</span></label>
+                    <input type="text" name="student_id" placeholder="e.g. STU-2025-001"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Gender</label>
+                    <select name="gender" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Date of birth</label>
+                    <input type="date" name="date_of_birth"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Contact number</label>
+                    <input type="text" name="contact_no" placeholder="98XXXXXXXX"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-600 mb-1">Address</label>
+                <textarea name="address" rows="2" placeholder="Street, City"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Level <span class="text-red-500">*</span></label>
+                    <select name="level" id="studentLevel" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="primary">Primary (1–5)</option>
+                        <option value="lower_secondary">Lower Secondary (6–8)</option>
+                        <option value="secondary">Secondary (9–10)</option>
+                        <option value="plus2">+2 College (11–12)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Class <span class="text-red-500">*</span></label>
+                    <input type="text" name="class_name" placeholder="e.g. 10"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Section</label>
+                    <input type="text" name="section" placeholder="e.g. A"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Roll number</label>
+                    <input type="text" name="roll_number" placeholder="e.g. 12"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <!-- +2 only fields — inputs are DISABLED when hidden so they don't submit -->
+            <div id="studentPlus2Fields" class="hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Faculty <span class="text-red-500">*</span></label>
+                        <input type="text" name="faculty" id="studentFaculty" disabled placeholder="Science / Management / Arts"
+                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Shift <span class="text-red-500">*</span></label>
+                        <select name="shift" id="studentShift" disabled class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                            <option value="">Select shift</option>
+                            <option value="morning">Morning</option>
+                            <option value="day">Day</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Admission date <span class="text-red-500">*</span></label>
+                    <input type="date" name="admission_date"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Academic year <span class="text-red-500">*</span></label>
+                    <input type="text" name="academic_year" placeholder="2025/2026"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Status</label>
+                    <select name="status" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="passed_out">Passed Out</option>
+                        <option value="transferred">Transferred</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Profile photo</label>
+                    <input type="file" name="profile_image" accept="image/*"
+                        class="w-full border border-slate-200 rounded-lg text-sm text-slate-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ TEACHER SECTION ============ -->
+        <div id="section-teacher" class="role-section {% if selected_role == 'teacher' %}active{% endif %}">
+            <div class="flex items-center gap-2 mb-3 text-xs font-medium text-brand-500 bg-brand-50 px-3 py-1.5 rounded-lg w-fit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Teacher details
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Teacher ID <span class="text-red-500">*</span></label>
+                    <input type="text" name="teacher_id" placeholder="e.g. TCH-001"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Gender</label>
+                    <select name="gender" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Date of birth</label>
+                    <input type="date" name="date_of_birth"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Contact number</label>
+                    <input type="text" name="contact_no" placeholder="98XXXXXXXX"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-600 mb-1">Address</label>
+                <textarea name="address" rows="2" placeholder="Street, City"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Qualification <span class="text-red-500">*</span></label>
+                    <select name="qualification" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">Select qualification</option>
+                        <option value="bachelor">Bachelor</option>
+                        <option value="master">Master</option>
+                        <option value="phd">PhD</option>
+                        <option value="others">Others</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Subject <span class="text-red-500">*</span></label>
+                    <input type="text" name="subject" placeholder="e.g. Mathematics"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Teaching level <span class="text-red-500">*</span></label>
+                    <select name="teaching_level" id="teachingLevel" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="primary">Primary (1–5)</option>
+                        <option value="lower_secondary">Lower Secondary (6–8)</option>
+                        <option value="secondary" selected>Secondary (9–10)</option>
+                        <option value="plus2">+2 College (11–12)</option>
+                        <option value="all">All Levels</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Experience (years)</label>
+                    <input type="number" name="experience_years" min="0" placeholder="0"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <!-- +2 teacher fields — DISABLED when hidden -->
+            <div id="teacherPlus2Fields" class="hidden">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Faculty <span class="text-red-500">*</span></label>
+                        <input type="text" name="faculty" id="teacherFaculty" disabled placeholder="Science / Management / Arts"
+                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Shift</label>
+                        <select name="shift" id="teacherShift" disabled class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                            <option value="morning">Morning</option>
+                            <option value="day" selected>Day</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Joining date <span class="text-red-500">*</span></label>
+                    <input type="date" name="joining_date"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Salary</label>
+                    <input type="number" name="salary" placeholder="Monthly salary"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Status</label>
+                    <select name="status" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="resigned">Resigned</option>
+                        <option value="on_leave">On Leave</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Profile photo</label>
+                    <input type="file" name="profile_image" accept="image/*"
+                        class="w-full border border-slate-200 rounded-lg text-sm text-slate-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ PARENT SECTION ============ -->
+        <div id="section-parent" class="role-section {% if selected_role == 'parent' %}active{% endif %}">
+            <div class="flex items-center gap-2 mb-3 text-xs font-medium text-brand-500 bg-brand-50 px-3 py-1.5 rounded-lg w-fit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Parent details
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Parent ID <span class="text-red-500">*</span></label>
+                    <input type="text" name="parent_id" placeholder="e.g. PAR-001"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Gender</label>
+                    <select name="gender" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Contact number <span class="text-red-500">*</span></label>
+                    <input type="text" name="contact_no" placeholder="98XXXXXXXX"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Relation to student <span class="text-red-500">*</span></label>
+                    <select name="relation" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="">Select relation</option>
+                        <option value="father">Father</option>
+                        <option value="mother">Mother</option>
+                        <option value="guardian">Guardian</option>
+                        <option value="brother">Brother</option>
+                        <option value="sister">Sister</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-600 mb-1">Address</label>
+                <textarea name="address" rows="2" placeholder="Street, City"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-600 mb-1">Linked students</label>
+                <select name="students" multiple
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                    {% for student in students %}
+                        <option value="{{ student.id }}">{{ student.user.get_full_name }} — {{ student.class_name }}{{ student.section }}</option>
+                    {% endfor %}
+                </select>
+                <p class="text-xs text-slate-400 mt-1">Hold Ctrl / Cmd to select multiple students</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Occupation</label>
+                    <input type="text" name="occupation" placeholder="e.g. Engineer"
+                        class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1">Status</label>
+                    <select name="status" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-slate-600 mb-1">Profile photo</label>
+                <input type="file" name="profile_image" accept="image/*"
+                    class="w-full border border-slate-200 rounded-lg text-sm text-slate-500 focus:outline-none">
+            </div>
+        </div>
+
+        <!-- ============ SUBMIT ============ -->
+        <button type="submit"
+            class="w-full mt-4 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors duration-150 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            Create account &amp; send credentials
+        </button>
+
+        <p class="text-center text-xs text-slate-400 mt-4">
+            Already have an account? <a href="{% url 'login' %}" class="text-brand-500 hover:underline">Sign in</a>
+        </p>
+
+    </form>
+</div>
+
+<script>
+    // ── Role tab switching ──────────────────────────────────────────
+    const tabs      = document.querySelectorAll('.role-tab');
+    const sections  = document.querySelectorAll('.role-section');
+    const roleInput = document.getElementById('roleInput');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const role = tab.dataset.role;
+
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            sections.forEach(s => s.classList.remove('active'));
+            document.getElementById('section-' + role).classList.add('active');
+
+            roleInput.value = role;
+        });
+    });
+
+    // ── Student level → toggle +2 fields ──────────────────────────
+    const studentLevel  = document.getElementById('studentLevel');
+    const studentPlus2  = document.getElementById('studentPlus2Fields');
+    const studentFaculty = document.getElementById('studentFaculty');
+    const studentShift   = document.getElementById('studentShift');
+
+    function toggleStudentPlus2() {
+        const isPlus2 = studentLevel.value === 'plus2';
+        studentPlus2.classList.toggle('hidden', !isPlus2);
+        // KEY FIX: disable fields when hidden so they are not submitted
+        studentFaculty.disabled = !isPlus2;
+        studentShift.disabled   = !isPlus2;
+    }
+
+    if (studentLevel) {
+        studentLevel.addEventListener('change', toggleStudentPlus2);
+        toggleStudentPlus2(); // run on page load
+    }
+
+    // ── Teacher level → toggle +2 fields ──────────────────────────
+    const teachingLevel  = document.getElementById('teachingLevel');
+    const teacherPlus2   = document.getElementById('teacherPlus2Fields');
+    const teacherFaculty = document.getElementById('teacherFaculty');
+    const teacherShift   = document.getElementById('teacherShift');
+
+    function toggleTeacherPlus2() {
+        const isPlus2 = teachingLevel.value === 'plus2';
+        teacherPlus2.classList.toggle('hidden', !isPlus2);
+        // KEY FIX: disable fields when hidden so they are not submitted
+        teacherFaculty.disabled = !isPlus2;
+        teacherShift.disabled   = !isPlus2;
+    }
+
+    if (teachingLevel) {
+        teachingLevel.addEventListener('change', toggleTeacherPlus2);
+        toggleTeacherPlus2(); // run on page load
+    }
+</script>
+
+</body>
+</html>
