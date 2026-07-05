@@ -1,0 +1,783 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}SmartSchool — Admin{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A4A;
+    --ink-2:#233457;
+    --gold:#C9A227;
+    --gold-soft:#E7D9A8;
+    --paper:#F6F2E7;
+    --card:#FFFFFF;
+    --line:#E4DCC7;
+    --slate:#3A4256;
+    --muted:#8B93A7;
+    --success:#3F7D58;
+    --success-bg:#E7F1EA;
+    --danger:#C1502E;
+    --danger-bg:#F8E9E2;
+    --warn:#B98A1C;
+    --warn-bg:#FBF1DC;
+    --radius:10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:var(--paper);
+    color:var(--slate);
+    display:flex;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  .serif{ font-family:'Fraunces', serif; }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:272px;
+    min-width:272px;
+    background:var(--ink);
+    color:#DCE2F2;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    position:sticky;
+    top:0;
+    transition:width .2s ease, min-width .2s ease;
+    overflow:hidden;
+  }
+  .sidebar.collapsed{ width:76px; min-width:76px; }
+  .sidebar-brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:22px 20px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    white-space:nowrap;
+  }
+  .brand-mark{
+    width:38px; height:38px; min-width:38px;
+    border-radius:8px;
+    background:linear-gradient(155deg, var(--gold), #A9821B);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--ink); font-family:'Fraunces',serif; font-weight:700; font-size:18px;
+    overflow:hidden;
+  }
+  .brand-mark img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .brand-text{ overflow:hidden; }
+  .brand-text .name{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; color:#fff; line-height:1.15;}
+  .brand-text .sub{ font-size:11px; color:var(--gold-soft); letter-spacing:.06em; text-transform:uppercase; margin-top:2px;}
+  .sidebar.collapsed .brand-text{ display:none; }
+
+  .nav-scroll{ flex:1; overflow-y:auto; padding:14px 12px 20px; }
+  .nav-scroll::-webkit-scrollbar{ width:6px; }
+  .nav-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.12); border-radius:4px; }
+
+  .nav-group{ margin-bottom:2px; border-radius:8px; }
+  .nav-group-btn{
+    width:100%;
+    display:flex; align-items:center; gap:11px;
+    background:none; border:none; cursor:pointer;
+    color:#C7CEE3;
+    padding:10px 10px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.01em;
+    transition:background .15s ease, color .15s ease;
+    position:relative;
+  }
+  .nav-group-btn:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .nav-group.open > .nav-group-btn{ color:#fff; background:rgba(201,162,39,0.12); }
+  .nav-group.open > .nav-group-btn .chev{ transform:rotate(90deg); }
+  .nav-icon{ width:17px; height:17px; flex:none; opacity:.9; }
+  .group-label{ flex:1; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .chev{ width:12px; height:12px; flex:none; transition:transform .18s ease; opacity:.6; }
+  .sidebar.collapsed .group-label, .sidebar.collapsed .chev{ display:none; }
+
+  /* Single (no-children) top level links, e.g. Dashboard */
+  .nav-link-single{
+    display:flex; align-items:center; gap:11px;
+    color:#C7CEE3;
+    text-decoration:none;
+    padding:10px 10px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.01em;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-link-single:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .nav-link-single.active{ color:#fff; background:rgba(201,162,39,0.12); }
+
+  .nav-sub{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .22s ease;
+    position:relative;
+  }
+  .nav-group.open > .nav-sub{ max-height:520px; }
+  .nav-sub::before{
+    content:'';
+    position:absolute;
+    left:24px; top:2px; bottom:6px;
+    width:1px;
+    background:rgba(201,162,39,0.28);
+  }
+  .sidebar.collapsed .nav-sub{ display:none; }
+  .nav-sub a{
+    display:block;
+    color:#AEB7CE;
+    text-decoration:none;
+    font-size:12.8px;
+    padding:8px 10px 8px 34px;
+    margin:1px 0;
+    border-radius:7px;
+    position:relative;
+    transition:background .13s ease, color .13s ease;
+  }
+  .nav-sub a:hover{ background:rgba(255,255,255,0.06); color:#fff; }
+  .nav-sub a.active{
+    background:rgba(201,162,39,0.14);
+    color:var(--gold-soft);
+    font-weight:600;
+  }
+  .nav-sub a.active::before{
+    content:'';
+    position:absolute; left:19px; top:50%; transform:translateY(-50%);
+    width:5px; height:5px; border-radius:50%;
+    background:var(--gold);
+  }
+
+  .sidebar-foot{
+    padding:14px 18px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    font-size:11px;
+    color:#7C86A0;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .sidebar.collapsed .sidebar-foot{ text-align:center; }
+  .sidebar.collapsed .sidebar-foot .full{ display:none; }
+
+  /* ---------- MAIN ---------- */
+  .main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+
+  .topbar{
+    height:66px;
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:16px;
+    padding:0 24px;
+    position:sticky; top:0; z-index:5;
+  }
+  .icon-btn{
+    width:36px; height:36px; border-radius:8px;
+    border:1px solid var(--line); background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; color:var(--slate);
+    transition:background .15s;
+  }
+  .icon-btn:hover{ background:var(--paper); }
+  .icon-btn svg{ width:17px; height:17px; }
+
+  .breadcrumb{ font-size:13px; color:var(--muted); }
+  .breadcrumb b{ color:var(--ink); font-weight:600; }
+
+  .search-box{
+    flex:1; max-width:380px;
+    display:flex; align-items:center; gap:8px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 12px;
+    margin-left:8px;
+  }
+  .search-box svg{ width:15px; height:15px; color:var(--muted); flex:none; }
+  .search-box input{
+    border:none; background:none; outline:none;
+    font-size:13px; width:100%; color:var(--slate); font-family:'Inter',sans-serif;
+  }
+
+  .topbar-right{ margin-left:auto; display:flex; align-items:center; gap:12px; }
+  .badge-dot{ position:relative; }
+  .badge-dot::after{
+    content:''; position:absolute; top:6px; right:6px;
+    width:7px; height:7px; border-radius:50%;
+    background:var(--danger); border:1.5px solid #fff;
+  }
+  .user-menu{ position:relative; }
+  .user-chip{
+    display:flex; align-items:center; gap:9px;
+    padding:5px 10px 5px 5px;
+    border-radius:24px;
+    border:1px solid var(--line);
+    cursor:pointer;
+    background:#fff;
+  }
+  .user-dropdown{
+    position:absolute;
+    top:calc(100% + 8px);
+    right:0;
+    min-width:200px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(27,42,74,0.12);
+    padding:8px;
+    display:none;
+    z-index:20;
+  }
+  .user-menu.open .user-dropdown{ display:block; }
+  .user-dropdown a{
+    display:flex; align-items:center; gap:9px;
+    padding:9px 10px;
+    border-radius:7px;
+    font-size:13px;
+    color:var(--slate);
+    text-decoration:none;
+    font-weight:500;
+  }
+  .user-dropdown a:hover{ background:var(--paper); }
+  .user-dropdown a svg{ width:15px; height:15px; flex:none; }
+  .user-dropdown .dropdown-divider{ height:1px; background:var(--line); margin:6px 2px; }
+  .user-dropdown a.logout-link{ color:var(--danger); }
+  .user-avatar{
+    width:30px; height:30px; border-radius:50%;
+    background:linear-gradient(155deg,#2C3D63,var(--ink));
+    color:var(--gold-soft);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:600; font-size:13px;
+  }
+  .user-chip .u-name{ font-size:12.5px; font-weight:600; color:var(--ink); line-height:1.1; }
+  .user-chip .u-role{ font-size:10.5px; color:var(--muted); }
+
+  .content{ padding:26px 28px 50px; max-width:1400px; }
+
+  .page-head{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom:22px; flex-wrap:wrap; gap:14px;
+  }
+  .page-head h1{
+    font-family:'Fraunces', serif; font-weight:600; font-size:27px; color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .page-head .desc{ font-size:13px; color:var(--muted); margin-top:4px; }
+  .term-tag{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--card); border:1px solid var(--line);
+    padding:7px 13px; border-radius:24px;
+    font-size:12px; color:var(--ink); font-weight:600;
+  }
+  .term-tag .dot{ width:6px; height:6px; border-radius:50%; background:var(--success); }
+
+  /* Stat cards - report card style */
+  .stat-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;
+  }
+  .stat-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 18px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';
+    position:absolute; top:0; left:0; width:100%; height:3px;
+    background:var(--accent, var(--gold));
+  }
+  .stat-card .s-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .stat-card .s-icon{
+    width:34px; height:34px; border-radius:8px;
+    background:var(--accent-bg, var(--gold-soft));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stat-card .s-icon svg{ width:17px; height:17px; color:var(--accent-ink,#8A6B12); }
+  .stat-card .s-trend{ font-size:11px; font-weight:600; padding:3px 7px; border-radius:20px; }
+  .trend-up{ background:var(--success-bg); color:var(--success); }
+  .trend-down{ background:var(--danger-bg); color:var(--danger); }
+  .stat-card .s-value{ font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; color:var(--ink); margin-top:14px; }
+  .stat-card .s-label{ font-size:12.5px; color:var(--muted); margin-top:3px; }
+
+  /* Two column layout */
+  .grid-2{ display:grid; grid-template-columns:1.5fr 1fr; gap:16px; margin-bottom:16px; align-items:start; }
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:20px;
+  }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .panel-head h3{ font-family:'Fraunces',serif; font-size:16px; font-weight:600; color:var(--ink); }
+  .panel-head .link{ font-size:12px; color:var(--gold); font-weight:600; text-decoration:none; }
+
+  /* Attendance bar chart (CSS) */
+  .chart-wrap{ display:flex; align-items:flex-end; gap:14px; height:170px; padding-top:10px; border-bottom:1px solid var(--line); }
+  .chart-col{ flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:6px; }
+  .bar-stack{ width:60%; display:flex; flex-direction:column; justify-content:flex-end; height:100%; border-radius:5px 5px 0 0; overflow:hidden; }
+  .bar-present{ background:var(--ink); }
+  .bar-absent{ background:var(--gold); }
+  .chart-col .day-label{ font-size:11px; color:var(--muted); margin-top:8px; font-weight:600; }
+  .chart-legend{ display:flex; gap:18px; margin-top:14px; font-size:12px; color:var(--slate); }
+  .chart-legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .chart-legend i{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+
+  /* At risk table */
+  .table-scroll{ width:100%; overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:600; padding:0 10px 10px; border-bottom:1px solid var(--line); }
+  td{ padding:11px 10px; border-bottom:1px solid var(--line); color:var(--slate); }
+  tr:last-child td{ border-bottom:none; }
+  .stu{ display:flex; align-items:center; gap:9px; }
+  .stu-avatar{
+    width:28px; height:28px; border-radius:50%; background:var(--paper);
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-size:11px; font-weight:600; color:var(--ink);
+  }
+  .stu-name{ font-weight:600; color:var(--ink); font-size:12.8px; }
+  .stu-class{ font-size:11px; color:var(--muted); }
+  .pill{ display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+  .pill-danger{ background:var(--danger-bg); color:var(--danger); }
+  .pill-warn{ background:var(--warn-bg); color:var(--warn); }
+
+  /* Notifications + Recommendations row */
+  .grid-2b{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .feed-item{ display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line); }
+  .feed-item:last-child{ border-bottom:none; padding-bottom:0; }
+  .feed-dot{ width:32px; height:32px; border-radius:8px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .feed-dot svg{ width:15px; height:15px; }
+  .feed-title{ font-size:13px; font-weight:600; color:var(--ink); }
+  .feed-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .feed-time{ font-size:11px; color:var(--muted); white-space:nowrap; margin-left:auto; }
+
+  .rec-item{ display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px dashed var(--line); }
+  .rec-item:last-child{ border-bottom:none; padding-bottom:0; }
+  .rec-num{
+    font-family:'Fraunces',serif; font-weight:600; font-size:13px;
+    width:26px; height:26px; border-radius:50%; background:var(--ink); color:var(--gold-soft);
+    display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .rec-title{ font-size:13px; font-weight:600; color:var(--ink); }
+  .rec-sub{ font-size:12px; color:var(--muted); margin-top:2px; line-height:1.4; }
+
+  {% block extra_css %}{% endblock %}
+
+  @media (max-width: 1100px){
+    .content{ padding:22px 18px 40px; }
+    .stat-grid{ grid-template-columns:repeat(2,1fr); }
+    .grid-2, .grid-2b{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- TABLET / MOBILE: off-canvas sidebar ---------- */
+  @media (max-width: 900px){
+    body{ overflow-x:hidden; }
+    .sidebar{
+      position:fixed;
+      left:0; top:0;
+      width:272px; min-width:272px;
+      height:100vh;
+      z-index:60;
+      transform:translateX(-100%);
+      transition:transform .25s ease;
+      box-shadow:2px 0 24px rgba(0,0,0,0.18);
+    }
+    .sidebar.mobile-open{ transform:translateX(0); }
+
+    .sidebar-overlay{
+      display:none;
+      position:fixed; inset:0;
+      background:rgba(14,19,33,0.45);
+      z-index:55;
+    }
+    .sidebar-overlay.show{ display:block; }
+
+    .main{ width:100%; min-width:0; }
+    .topbar{ padding:0 16px; gap:10px; }
+    .breadcrumb{ display:none; }
+    .search-box{ display:none; }
+    .content{ padding:18px 16px 40px; }
+    .page-head h1{ font-size:23px; }
+  }
+
+  @media (max-width: 640px){
+    .topbar{ height:60px; }
+    .page-head{ align-items:flex-start; }
+    .page-head .desc{ font-size:12px; }
+    .term-tag{ font-size:11px; padding:6px 10px; }
+
+    .stat-grid{ grid-template-columns:1fr 1fr; gap:12px; }
+    .stat-card{ padding:14px 14px 12px; }
+    .stat-card .s-value{ font-size:22px; margin-top:10px; }
+    .stat-card .s-icon{ width:30px; height:30px; }
+
+    .panel{ padding:16px; }
+    .panel-head h3{ font-size:15px; }
+
+    .chart-wrap{ overflow-x:auto; gap:10px; padding-bottom:4px; }
+    .chart-col{ min-width:32px; }
+
+    .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    table{ min-width:460px; }
+
+    .user-chip{ padding:5px; border-radius:50%; }
+    .user-chip .u-name, .user-chip .u-role{ display:none; }
+    .user-dropdown{ right:-8px; }
+  }
+
+  @media (max-width: 420px){
+    .stat-grid{ grid-template-columns:1fr; }
+    .content{ padding:14px 12px 32px; }
+    .sidebar{ width:86vw; min-width:0; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-mark" id="brandMark">
+      <img src="{% static 'images/logo.png' %}" alt="SmartSchool logo">
+    </div>
+    <div class="brand-text">
+      <div class="name">SmartSchool</div>
+      <div class="sub">Admin Console</div>
+    </div>
+  </div>
+
+  <nav class="nav-scroll" id="navScroll">
+
+    <!-- Dashboard (single link, no submenu) -->
+    <a class="nav-link-single {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      <span class="group-label">Dashboard</span>
+    </a>
+
+    <!-- Students -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+        <span class="group-label">Students</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">All Students</a>
+        <a href="{% url 'register_student' %}" class="{% if request.resolver_match.url_name == 'student_add' %}active{% endif %}">Add Student</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'student_bulk_import' %}active{% endif %}">Bulk Import Students</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'student_promotion' %}active{% endif %}">Student Promotion</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'student_alumni' %}active{% endif %}">Alumni / Inactive Students</a>
+      </div>
+    </div>
+
+    <!-- Parents -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="group-label">Parents</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'parent_list' %}active{% endif %}">All Parents</a>
+        <a href="{% url 'register_parent' %}" class="{% if request.resolver_match.url_name == 'parent_add' %}active{% endif %}">Add Parent</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'parent_student_mapping' %}active{% endif %}">Parent-Student Mapping</a>
+      </div>
+    </div>
+
+    <!-- Teachers -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20v14H6l-4 4z"/><path d="M8 8h8M8 12h5"/></svg>
+        <span class="group-label">Teachers</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'teacher_list' %}active{% endif %}">All Teachers</a>
+        <a href="{% url 'register_teacher' %}" class="{% if request.resolver_match.url_name == 'teacher_add' %}active{% endif %}">Add Teacher</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'teacher_assignment' %}active{% endif %}">Teacher Assignment</a>
+      </div>
+    </div>
+
+    <!-- Users & Roles -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span class="group-label">Users &amp; Roles</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">All Users</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'user_create' %}active{% endif %}">Create User</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'admin_user_list' %}active{% endif %}">Admin Users</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'password_reset_requests' %}active{% endif %}">Reset Password Requests</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'access_control' %}active{% endif %}">Access Control</a>
+      </div>
+    </div>
+
+    <!-- Academic Structure -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5M2 8v8M22 8v8"/></svg>
+        <span class="group-label">Academic Structure</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'academic_year_list' %}active{% endif %}">Academic Years</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'level_list' %}active{% endif %}">Levels</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'class_list' %}active{% endif %}">Classes</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'section_list' %}active{% endif %}">Sections</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'faculty_list' %}active{% endif %}">Faculties</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'shift_list' %}active{% endif %}">Shifts</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'subject_list' %}active{% endif %}">Subjects</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'subject_class_mapping' %}active{% endif %}">Subject-Class Mapping</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'teacher_subject_assignment' %}active{% endif %}">Teacher Subject Assignment</a>
+      </div>
+    </div>
+
+    <!-- Timetable -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="4" x2="8" y2="2"/><line x1="16" y1="4" x2="16" y2="2"/></svg>
+        <span class="group-label">Timetable</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'class_timetable' %}active{% endif %}">Class Timetable</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'teacher_timetable' %}active{% endif %}">Teacher Timetable</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'exam_schedule' %}active{% endif %}">Exam Schedule</a>
+      </div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span class="group-label">Attendance</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'attendance_overview' %}active{% endif %}">Daily Attendance Overview</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'attendance_reports' %}active{% endif %}">Attendance Reports</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'low_attendance_alerts' %}active{% endif %}">Low Attendance Alerts</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'attendance_settings' %}active{% endif %}">Attendance Settings</a>
+      </div>
+    </div>
+
+    <!-- Examinations -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+        <span class="group-label">Examinations</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'exam_list' %}active{% endif %}">Exams</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'result_list' %}active{% endif %}">Results</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'grade_rules' %}active{% endif %}">Grade Rules</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'report_cards' %}active{% endif %}">Report Cards</a>
+      </div>
+    </div>
+
+    <!-- Student Status Evaluation -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-7"/></svg>
+        <span class="group-label">Student Status Evaluation</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'student_status_dashboard' %}active{% endif %}">Student Status Dashboard</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'at_risk_students' %}active{% endif %}">At Risk Students</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'attendance_marks_analysis' %}active{% endif %}">Attendance vs Marks Analysis</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'performance_trends' %}active{% endif %}">Performance Trends</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'recommendations' %}active{% endif %}">Recommendations</a>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="group-label">Notifications</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'announcements' %}active{% endif %}">Announcements</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'send_notification' %}active{% endif %}">Send Notification</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'notification_history' %}active{% endif %}">Notification History</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'notification_templates' %}active{% endif %}">Templates</a>
+      </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        <span class="group-label">Reports</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'student_reports' %}active{% endif %}">Student Reports</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'attendance_reports_full' %}active{% endif %}">Attendance Reports</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'result_reports' %}active{% endif %}">Result Reports</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'performance_reports' %}active{% endif %}">Performance Reports</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'teacher_reports' %}active{% endif %}">Teacher Reports</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'export_center' %}active{% endif %}">Export Center</a>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="group-label">Settings</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'school_profile' %}active{% endif %}">School Profile</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'academic_settings' %}active{% endif %}">Academic Settings</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'attendance_rules' %}active{% endif %}">Attendance Rules</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'result_rules' %}active{% endif %}">Result Rules</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'notification_settings' %}active{% endif %}">Notification Settings</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'branding_settings' %}active{% endif %}">Branding</a>
+      </div>
+    </div>
+
+    <!-- Audit Logs -->
+    <div class="nav-group">
+      <button class="nav-group-btn" type="button">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="8" x2="17" y2="8"/><line x1="9" y1="12" x2="17" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/><line x1="6" y1="8" x2="6.01" y2="8"/><line x1="6" y1="12" x2="6.01" y2="12"/><line x1="6" y1="16" x2="6.01" y2="16"/></svg>
+        <span class="group-label">Audit Logs</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <div class="nav-sub">
+        <a href="" class="{% if request.resolver_match.url_name == 'activity_logs' %}active{% endif %}">Activity Logs</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'attendance_logs' %}active{% endif %}">Attendance Logs</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'result_logs' %}active{% endif %}">Result Logs</a>
+        <a href="" class="{% if request.resolver_match.url_name == 'login_logs' %}active{% endif %}">Login Logs</a>
+      </div>
+    </div>
+
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="full">© {% now "Y" %} SmartSchool</span>
+  </div>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main">
+  <header class="topbar">
+    <button class="icon-btn" id="toggleSidebar" title="Toggle sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="breadcrumb"><b>{% block breadcrumb %}{{ page_title|default:"Dashboard" }}{% endblock %}</b></div>
+
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search students, teachers, records…">
+    </div>
+
+    <div class="topbar-right">
+      <button class="icon-btn badge-dot" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <button class="icon-btn" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="user-menu" id="userMenu">
+        <div class="user-chip" id="userChipToggle">
+          <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+          <div>
+            <div class="u-name">{{ user.get_full_name|default:user.username }}</div>
+            <div class="u-role">{{ user.get_role_display|default:"Admin" }}</div>
+          </div>
+        </div>
+        <div class="user-dropdown">
+          <a href="{% url 'change_password' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Change Password
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="{% url 'logout' %}" class="logout-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script>
+// ---- Sidebar group expand/collapse ----
+document.querySelectorAll('.nav-group-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    btn.closest('.nav-group').classList.toggle('open');
+  });
+});
+
+// Auto-open the group that contains the active sub-link
+document.querySelectorAll('.nav-sub a.active').forEach(function (a) {
+  a.closest('.nav-group').classList.add('open');
+});
+
+// ---- Sidebar collapse (desktop) / off-canvas (mobile) ----
+const sidebarEl = document.getElementById('sidebar');
+const overlayEl = document.getElementById('sidebarOverlay');
+const MOBILE_BREAKPOINT = 900;
+const isMobileView = () => window.innerWidth <= MOBILE_BREAKPOINT;
+
+function closeMobileSidebar(){
+  sidebarEl.classList.remove('mobile-open');
+  overlayEl.classList.remove('show');
+}
+
+document.getElementById('toggleSidebar').addEventListener('click', () => {
+  if (isMobileView()) {
+    sidebarEl.classList.toggle('mobile-open');
+    overlayEl.classList.toggle('show');
+  } else {
+    sidebarEl.classList.toggle('collapsed');
+  }
+});
+
+overlayEl.addEventListener('click', closeMobileSidebar);
+
+// Closing the drawer after tapping a nav link makes the mobile flow feel native
+document.getElementById('navScroll').addEventListener('click', (e) => {
+  if (isMobileView() && e.target.tagName === 'A') closeMobileSidebar();
+});
+
+// Reset state cleanly when crossing the mobile/desktop breakpoint
+window.addEventListener('resize', () => {
+  if (!isMobileView()) closeMobileSidebar();
+});
+
+// ---- User menu dropdown (logout / change password) ----
+const userMenu = document.getElementById('userMenu');
+document.getElementById('userChipToggle').addEventListener('click', (e) => {
+  e.stopPropagation();
+  userMenu.classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  if (!userMenu.contains(e.target)) userMenu.classList.remove('open');
+});
+</script>
+
+</body>
+</html>

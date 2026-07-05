@@ -3,24 +3,17 @@ from apps.parents.models import Parent
 
 
 class ParentForm(forms.ModelForm):
-
     class Meta:
         model = Parent
-
         exclude = [
             'user',
+            'parent_id',   # auto-generated in model
             'created_at',
             'updated_at',
         ]
 
         widgets = {
-
             # ---------------- BASIC INFO ----------------
-            'parent_id': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter Parent ID'
-            }),
-
             'gender': forms.Select(attrs={
                 'class': 'form-select'
             }),
@@ -46,7 +39,7 @@ class ParentForm(forms.ModelForm):
                 'class': 'form-select'
             }),
 
-            # ---------------- STUDENTS ----------------
+            # ---------------- LINKED STUDENTS ----------------
             'students': forms.SelectMultiple(attrs={
                 'class': 'form-select'
             }),
@@ -65,30 +58,17 @@ class ParentForm(forms.ModelForm):
 
     # ---------------- CUSTOM VALIDATION ----------------
     def clean_contact_no(self):
-
         contact = self.cleaned_data.get('contact_no')
 
-        if not contact.isdigit():
-            raise forms.ValidationError(
-                "Contact number must contain only digits."
-            )
+        if contact:
+            if not contact.isdigit():
+                raise forms.ValidationError(
+                    "Contact number must contain only digits."
+                )
 
-        if len(contact) < 10:
-            raise forms.ValidationError(
-                "Contact number must be at least 10 digits."
-            )
+            if len(contact) < 10:
+                raise forms.ValidationError(
+                    "Contact number must be at least 10 digits."
+                )
 
         return contact
-
-    def clean_parent_id(self):
-
-        parent_id = self.cleaned_data.get('parent_id')
-
-        if len(parent_id) < 3:
-            raise forms.ValidationError(
-                "Parent ID is too short."
-            )
-
-        return parent_id
-
-    

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSchool — Register Teacher</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Fraunces', 'serif'],
+                        mono: ['IBM Plex Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50:  '#F1EEDD',
+                            100: '#E7D9A8',
+                            500: '#C9A227',
+                            600: '#A9821B',
+                            700: '#8A6B12',
+                        },
+                        ink: {
+                            DEFAULT: '#1B2A4A',
+                            2: '#233457',
+                        },
+                        paper: '#F6F2E7',
+                        line: '#E4DCC7',
+                        slate2: '#3A4256',
+                        muted2: '#8B93A7',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        input[type="file"] { padding: 6px 8px; }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #C9A227 !important;
+            box-shadow: 0 0 0 1px #C9A227;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-paper flex items-start justify-center py-6 sm:py-10 px-3 sm:px-4">
+
+<div class="w-full max-w-2xl bg-white rounded-2xl border border-line p-5 sm:p-8 shadow-sm">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center text-ink font-serif font-bold text-lg flex-none" style="background:linear-gradient(155deg, #C9A227, #A9821B);">S</div>
+        <span class="text-lg font-serif font-semibold text-ink">SmartSchool</span>
+    </div>
+
+    <h2 class="text-lg sm:text-xl font-serif font-semibold text-ink mb-1">Register a teacher</h2>
+    <p class="text-sm text-muted2 mb-6">Fill in the details below. Login credentials will be sent via email automatically.</p>
+
+    <!-- ============ ERROR DISPLAY ============ -->
+    {% if error %}
+    <div class="mb-5 p-4 rounded-lg bg-[#F8E9E2] border border-[#E7C7B4] text-[#C1502E] text-sm">
+        <p class="font-semibold mb-2">Please fix the following errors:</p>
+        <ul class="list-disc list-inside space-y-1">
+            {% for field, errors in error.items %}
+                {% for e in errors %}
+                    <li>
+                        {% if field != "__all__" %}
+                            <span class="font-medium capitalize">{{ field|cut:"_" }}:</span>
+                        {% endif %}
+                        {{ e }}
+                    </li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- ============ SUCCESS MESSAGE ============ -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="mb-5 p-3 rounded-lg bg-[#E7F1EA] border border-[#C9E0D0] text-[#3F7D58] text-sm font-medium">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" novalidate id="registerForm">
+        {% csrf_token %}
+        <input type="hidden" name="role" value="teacher">
+
+        <!-- ============ COMMON INFORMATION ============ -->
+        <div class="text-xs font-semibold tracking-widest uppercase text-muted2 border-b border-line pb-2 mb-4">
+            Common information
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">First name <span class="text-[#C1502E]">*</span></label>
+                <input type="text" name="first_name" value="{{ user_form.first_name.value|default:'' }}"
+                    placeholder="John"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm text-ink bg-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Last name <span class="text-[#C1502E]">*</span></label>
+                <input type="text" name="last_name" value="{{ user_form.last_name.value|default:'' }}"
+                    placeholder="Doe"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm text-ink bg-white">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate2 mb-1">Username <span class="text-[#C1502E]">*</span></label>
+            <input type="text" name="username" value="{{ user_form.username.value|default:'' }}"
+                placeholder="john.doe"
+                class="w-full border border-line rounded-lg px-3 py-2 text-sm text-ink bg-white">
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate2 mb-1">Email address <span class="text-[#C1502E]">*</span></label>
+            <input type="email" name="email" value="{{ user_form.email.value|default:'' }}"
+                placeholder="john@example.com"
+                class="w-full border border-line rounded-lg px-3 py-2 text-sm text-ink bg-white">
+            <p class="text-xs text-muted2 mt-1">Auto-generated password will be sent to this address</p>
+        </div>
+
+        <!-- ============ TEACHER DETAILS ============ -->
+        <div class="text-xs font-semibold tracking-widest uppercase text-muted2 border-b border-line pb-2 mb-4 mt-6">
+            Teacher details
+        </div>
+
+        <div class="flex items-center gap-2 mb-3 text-xs font-semibold text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg w-fit">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            Teacher information
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate2 mb-1">Gender</label>
+            <select name="gender" class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Date of birth</label>
+                <input type="date" name="date_of_birth"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Contact number</label>
+                <input type="text" name="contact_no" placeholder="98XXXXXXXX"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-slate2 mb-1">Address</label>
+            <textarea name="address" rows="2" placeholder="Street, City"
+                class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Qualification <span class="text-[#C1502E]">*</span></label>
+                <select name="qualification" class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+                    <option value="">Select qualification</option>
+                    <option value="bachelor">Bachelor</option>
+                    <option value="master">Master</option>
+                    <option value="phd">PhD</option>
+                    <option value="others">Others</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Subject <span class="text-[#C1502E]">*</span></label>
+                <input type="text" name="subject" placeholder="e.g. Mathematics"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Teaching level <span class="text-[#C1502E]">*</span></label>
+                <select name="teaching_level" id="teachingLevel" class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+                    <option value="primary">Primary (1–5)</option>
+                    <option value="lower_secondary">Lower Secondary (6–8)</option>
+                    <option value="secondary" selected>Secondary (9–10)</option>
+                    <option value="plus2">+2 College (11–12)</option>
+                    <option value="all">All Levels</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Experience (years)</label>
+                <input type="number" name="experience_years" min="0" placeholder="0"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+            </div>
+        </div>
+
+        <!-- +2 teacher fields — DISABLED when hidden -->
+        <div id="teacherPlus2Fields" class="hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate2 mb-1">Faculty <span class="text-[#C1502E]">*</span></label>
+                    <input type="text" name="faculty" id="teacherFaculty" disabled placeholder="Science / Management / Arts"
+                        class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate2 mb-1">Shift</label>
+                    <select name="shift" id="teacherShift" disabled class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+                        <option value="morning">Morning</option>
+                        <option value="day" selected>Day</option>
+                        <option value="both">Both</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Joining date <span class="text-[#C1502E]">*</span></label>
+                <input type="date" name="joining_date"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Salary</label>
+                <input type="number" name="salary" placeholder="Monthly salary"
+                    class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Status</label>
+                <select name="status" class="w-full border border-line rounded-lg px-3 py-2 text-sm bg-white">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="resigned">Resigned</option>
+                    <option value="on_leave">On Leave</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate2 mb-1">Profile photo</label>
+                <input type="file" name="profile_image" accept="image/*"
+                    class="w-full border border-line rounded-lg text-sm text-muted2 bg-white">
+            </div>
+        </div>
+
+        <!-- ============ SUBMIT ============ -->
+        <button type="submit"
+            class="w-full mt-4 py-2.5 bg-ink hover:bg-ink-2 text-white text-sm font-semibold rounded-lg transition-colors duration-150 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            Create account &amp; send credentials
+        </button>
+
+        <p class="text-center text-xs text-muted2 mt-4">
+            Already have an account? <a href="{% url 'login' %}" class="text-brand-500 font-medium hover:underline">Sign in</a>
+        </p>
+
+    </form>
+</div>
+
+<script>
+    // ── Teacher level → toggle +2 fields ──────────────────────────
+    const teachingLevel  = document.getElementById('teachingLevel');
+    const teacherPlus2   = document.getElementById('teacherPlus2Fields');
+    const teacherFaculty = document.getElementById('teacherFaculty');
+    const teacherShift   = document.getElementById('teacherShift');
+
+    function toggleTeacherPlus2() {
+        const isPlus2 = teachingLevel.value === 'plus2';
+        teacherPlus2.classList.toggle('hidden', !isPlus2);
+        // KEY FIX: disable fields when hidden so they are not submitted
+        teacherFaculty.disabled = !isPlus2;
+        teacherShift.disabled   = !isPlus2;
+    }
+
+    if (teachingLevel) {
+        teachingLevel.addEventListener('change', toggleTeacherPlus2);
+        toggleTeacherPlus2(); // run on page load
+    }
+</script>
+
+</body>
+</html>

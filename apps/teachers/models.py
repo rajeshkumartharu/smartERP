@@ -3,7 +3,6 @@ from apps.accounts.models import User
 
 
 class Teacher(models.Model):
-
     # ---------------- USER ----------------
     user = models.OneToOneField(
         User,
@@ -12,21 +11,20 @@ class Teacher(models.Model):
     )
 
     # ---------------- BASIC INFO ----------------
-    teacher_id = models.CharField(max_length=20, unique=True)
+    teacher_id = models.CharField(max_length=20, unique=True, blank=True)
 
-    gender_choices = (
+    GENDER_CHOICES = (
         ('male', 'Male'),
         ('female', 'Female'),
         ('other', 'Other'),
     )
-    gender = models.CharField(max_length=10, choices=gender_choices, blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
 
     date_of_birth = models.DateField(blank=True, null=True)
 
     # ---------------- CONTACT INFO ----------------
     address = models.TextField(blank=True, null=True)
     contact_no = models.CharField(max_length=15, blank=True, null=True)
-   
     profile_image = models.ImageField(upload_to='teachers/', blank=True, null=True)
 
     # ---------------- ACADEMIC INFO ----------------
@@ -36,14 +34,9 @@ class Teacher(models.Model):
         ('phd', 'PhD'),
         ('others', 'Others'),
     )
-
-    qualification = models.CharField(
-        max_length=20,
-        choices=QUALIFICATION_CHOICES
-    )
+    qualification = models.CharField(max_length=20, choices=QUALIFICATION_CHOICES)
 
     subject = models.CharField(max_length=100)
-
     experience_years = models.PositiveIntegerField(default=0)
 
     # ---------------- TEACHING LEVEL ----------------
@@ -54,7 +47,6 @@ class Teacher(models.Model):
         ('plus2', '+2 College (11–12)'),
         ('all', 'All Levels'),
     )
-
     teaching_level = models.CharField(
         max_length=30,
         choices=LEVEL_CHOICES,
@@ -69,15 +61,14 @@ class Teacher(models.Model):
         help_text="Only for +2 (Science / Management / Arts)"
     )
 
-    shift_choices = (
+    SHIFT_CHOICES = (
         ('morning', 'Morning'),
         ('day', 'Day'),
         ('both', 'Both'),
     )
-
     shift = models.CharField(
         max_length=10,
-        choices=shift_choices,
+        choices=SHIFT_CHOICES,
         default='day'
     )
 
@@ -91,16 +82,15 @@ class Teacher(models.Model):
         null=True
     )
 
-    status_choices = (
+    STATUS_CHOICES = (
         ('active', 'Active'),
         ('inactive', 'Inactive'),
         ('resigned', 'Resigned'),
         ('on_leave', 'On Leave'),
     )
-
     status = models.CharField(
         max_length=20,
-        choices=status_choices,
+        choices=STATUS_CHOICES,
         default='active'
     )
 
@@ -108,6 +98,23 @@ class Teacher(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # ---------------- AUTO ID GENERATION ----------------
+    def save(self, *args, **kwargs):
+        if not self.teacher_id:
+            last_teacher = Teacher.objects.order_by('-id').first()
+
+            if last_teacher and last_teacher.teacher_id:
+                # Example existing ID: TCH0001
+                last_number = int(last_teacher.teacher_id.replace('TCH', ''))
+                new_number = last_number + 1
+            else:
+                new_number = 1
+
+            self.teacher_id = f"TCH{new_number:04d}"
+
+        super().save(*args, **kwargs)
+
     # ---------------- STRING ----------------
     def __str__(self):
-        return f"{self.first_name} {self.last_name or ''} ({self.teacher_id})"
+        name = self.user.get_full_name() or self.user.username
+        return f"{name} ({self.teacher_id})"

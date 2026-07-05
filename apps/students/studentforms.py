@@ -3,24 +3,17 @@ from apps.students.models import Student
 
 
 class StudentForm(forms.ModelForm):
-
     class Meta:
         model = Student
-
         exclude = [
             'user',
+            'student_id',   # auto-generated in model
             'created_at',
             'updated_at',
         ]
 
         widgets = {
-
             # ---------------- BASIC INFO ----------------
-            'student_id': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter Student ID'
-            }),
-
             'gender': forms.Select(attrs={
                 'class': 'form-select'
             }),
@@ -94,11 +87,9 @@ class StudentForm(forms.ModelForm):
 
     # ---------------- CUSTOM VALIDATION ----------------
     def clean_contact_no(self):
-
         contact = self.cleaned_data.get('contact_no')
 
         if contact:
-
             if not contact.isdigit():
                 raise forms.ValidationError(
                     "Contact number must contain only digits."
@@ -111,21 +102,8 @@ class StudentForm(forms.ModelForm):
 
         return contact
 
-    def clean_student_id(self):
-
-        student_id = self.cleaned_data.get('student_id')
-
-        if len(student_id) < 3:
-            raise forms.ValidationError(
-                "Student ID is too short."
-            )
-
-        return student_id
-
-
     # ---------------- LEVEL BASED VALIDATION ----------------
     def clean(self):
-
         cleaned_data = super().clean()
 
         level = cleaned_data.get('level')
@@ -134,7 +112,6 @@ class StudentForm(forms.ModelForm):
 
         # +2 validation
         if level == 'plus2':
-
             if not faculty:
                 self.add_error(
                     'faculty',
@@ -146,5 +123,9 @@ class StudentForm(forms.ModelForm):
                     'shift',
                     'Shift is required for +2 students.'
                 )
+        else:
+            # for non +2 students, clear faculty and shift
+            cleaned_data['faculty'] = None
+            cleaned_data['shift'] = None
 
         return cleaned_data

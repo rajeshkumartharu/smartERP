@@ -1,0 +1,26 @@
+Attendance Notification - SmartSchool ERP
+
+Dear Parent/Guardian,
+
+⚠️ Attendance Alert
+
+This is to inform you that your child {{ student_name }} was marked as ABSENT on {{ date }}.
+
+Student Details:
+-----------------
+Name: {{ student_name }}
+Student ID: {{ student_id }}
+Class: {{ class_name }}
+Section: {{ section }}
+Roll Number: {{ roll_number }}
+Subject: {{ subject }}
+Date: {{ date }}
+Status: ABSENT
+
+We kindly request you to ensure regular attendance of your child. If this absence was due to any valid reason, please inform the school authorities.
+
+For any queries, please contact the school office.
+
+---
+This is an automated notification from SmartSchool ERP System.
+Please do not reply to this email.

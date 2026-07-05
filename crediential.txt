@@ -1,3 +1,15 @@
 admin:
 username: rajesherp
-password: rajesherp
+password: R@j5sh123
+
+teacher:
+username: subash
+password: Asusvivobook@#123
+
+parent:
+username: subash
+password: Su2@sh123
+
+Student:
+username:rajesh
+password: R@j5sh123

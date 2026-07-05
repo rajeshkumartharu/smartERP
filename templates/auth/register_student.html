@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSchool — Register Student</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Fraunces', 'serif'],
+                        mono: ['IBM Plex Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: { 50:'#F1EEDD', 100:'#E7D9A8', 500:'#C9A227', 600:'#A9821B', 700:'#8A6B12' },
+                        ink: { DEFAULT: '#1B2A4A', 2: '#233457' },
+                        paper: '#F6F2E7',
+                        line: '#E4DCC7',
+                        slate2: '#3A4256',
+                        muted2: '#8B93A7',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Every Django-rendered input/select/textarea inside the form gets this
+           look, regardless of the widget classes the form module declares
+           (e.g. 'form-control'), so the shared form modules used elsewhere
+           in the project don't need to know about this page's Tailwind setup. */
+        #registerForm input[type="text"],
+        #registerForm input[type="email"],
+        #registerForm input[type="date"],
+        #registerForm input[type="tel"],
+        #registerForm input[type="password"],
+        #registerForm select,
+        #registerForm textarea {
+            width: 100%;
+            border: 1px solid #E4DCC7;
+            border-radius: 0.5rem;
+            padding: 0.625rem 0.75rem;
+            /* 16px on small screens so iOS Safari doesn't zoom in on focus;
+               steps down to a tighter 14px once there's room to spare. */
+            font-size: 1rem;
+            background: #fff;
+            color: #1B2A4A;
+        }
+        @media (min-width: 640px) {
+            #registerForm input[type="text"],
+            #registerForm input[type="email"],
+            #registerForm input[type="date"],
+            #registerForm input[type="tel"],
+            #registerForm input[type="password"],
+            #registerForm select,
+            #registerForm textarea {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+        #registerForm input[type="file"] { width: 100%; font-size: 0.875rem; color: #8B93A7; }
+        #registerForm label { display: block; font-size: 0.875rem; font-weight: 500; color: #3A4256; margin-bottom: 0.25rem; }
+        #registerForm input:focus, #registerForm select:focus, #registerForm textarea:focus {
+            outline: none; border-color: #C9A227; box-shadow: 0 0 0 1px #C9A227;
+        }
+        .field-error { color: #C1502E; font-size: 0.75rem; margin-top: 0.25rem; }
+        .section-heading {
+            font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+            color: #8B93A7; border-bottom: 1px solid #E4DCC7; padding-bottom: 0.5rem; margin-bottom: 1rem;
+        }
+        .subsection-label {
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+            color: #A9821B; margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-paper flex items-start justify-center py-4 sm:py-10 px-3 sm:px-4">
+
+<div class="w-full max-w-2xl bg-white rounded-2xl border border-line p-4 sm:p-8 shadow-sm">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center text-ink font-serif font-bold text-lg flex-none overflow-hidden">
+            <img src="{% static 'images/logo.png' %}" alt="SmartSchool logo" class="w-full h-full object-cover">
+        </div>
+        <span class="text-lg font-serif font-semibold text-ink">SmartSchool</span>
+    </div>
+
+    <h2 class="text-lg sm:text-xl font-serif font-semibold text-ink mb-1">Register a student</h2>
+    <p class="text-sm text-muted2 mb-6">
+        Parent/guardian details are required. Login credentials are emailed automatically to the
+        student, and to the parent if a new parent account is created.
+    </p>
+
+    <!-- ============ MESSAGES (from Django messages framework) ============ -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="mb-3 p-3 rounded-lg text-sm font-medium
+            {% if message.tags == 'success' %} bg-[#E7F1EA] border border-[#C9E0D0] text-[#3F7D58]
+            {% elif message.tags == 'warning' %} bg-[#FBF1DC] border border-[#F0DFAF] text-[#B98A1C]
+            {% else %} bg-[#F8E9E2] border border-[#E7C7B4] text-[#C1502E] {% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if user_form.errors or student_form.errors or parent_user_form.errors or parent_form.errors %}
+    <div class="mb-5 p-4 rounded-lg bg-[#F8E9E2] border border-[#E7C7B4] text-[#C1502E] text-sm">
+        <p class="font-semibold">Please fix the highlighted fields below before submitting again.</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" novalidate id="registerForm">
+        {% csrf_token %}
+
+        <!-- ============ SECTION A: STUDENT ACCOUNT INFORMATION ============ -->
+        <div class="section-heading">Student Account Information</div>
+
+        {% if user_form.non_field_errors %}
+        <p class="field-error mb-3">{{ user_form.non_field_errors|join:" " }}</p>
+        {% endif %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ user_form.first_name.id_for_label }}">First name <span class="text-[#C1502E]">*</span></label>
+                {{ user_form.first_name }}
+                {% if user_form.first_name.errors %}<p class="field-error">{{ user_form.first_name.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ user_form.last_name.id_for_label }}">Last name <span class="text-[#C1502E]">*</span></label>
+                {{ user_form.last_name }}
+                {% if user_form.last_name.errors %}<p class="field-error">{{ user_form.last_name.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="{{ user_form.username.id_for_label }}">Username <span class="text-[#C1502E]">*</span></label>
+            {{ user_form.username }}
+            {% if user_form.username.errors %}<p class="field-error">{{ user_form.username.errors|join:" " }}</p>{% endif %}
+        </div>
+
+        <div class="mb-4">
+            <label for="{{ user_form.email.id_for_label }}">Email address <span class="text-[#C1502E]">*</span></label>
+            {{ user_form.email }}
+            <p class="text-xs text-muted2 mt-1">An auto-generated password will be emailed to this address.</p>
+            {% if user_form.email.errors %}<p class="field-error">{{ user_form.email.errors|join:" " }}</p>{% endif %}
+        </div>
+
+        <!-- ============ SECTION B: STUDENT ACADEMIC INFORMATION ============ -->
+        <div class="section-heading mt-6">Student Academic Information</div>
+
+        {% if student_form.non_field_errors %}
+        <p class="field-error mb-3">{{ student_form.non_field_errors|join:" " }}</p>
+        {% endif %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ student_form.student_id.id_for_label }}">Student ID <span class="text-[#C1502E]">*</span></label>
+                {{ student_form.student_id }}
+                {% if student_form.student_id.errors %}<p class="field-error">{{ student_form.student_id.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ student_form.gender.id_for_label }}">Gender</label>
+                {{ student_form.gender }}
+                {% if student_form.gender.errors %}<p class="field-error">{{ student_form.gender.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ student_form.date_of_birth.id_for_label }}">Date of birth</label>
+                {{ student_form.date_of_birth }}
+                {% if student_form.date_of_birth.errors %}<p class="field-error">{{ student_form.date_of_birth.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ student_form.contact_no.id_for_label }}">Contact number</label>
+                {{ student_form.contact_no }}
+                {% if student_form.contact_no.errors %}<p class="field-error">{{ student_form.contact_no.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="{{ student_form.address.id_for_label }}">Address</label>
+            {{ student_form.address }}
+            {% if student_form.address.errors %}<p class="field-error">{{ student_form.address.errors|join:" " }}</p>{% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ student_form.level.id_for_label }}">Level <span class="text-[#C1502E]">*</span></label>
+                {{ student_form.level }}
+                {% if student_form.level.errors %}<p class="field-error">{{ student_form.level.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ student_form.class_name.id_for_label }}">Class <span class="text-[#C1502E]">*</span></label>
+                {{ student_form.class_name }}
+                {% if student_form.class_name.errors %}<p class="field-error">{{ student_form.class_name.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ student_form.section.id_for_label }}">Section</label>
+                {{ student_form.section }}
+                {% if student_form.section.errors %}<p class="field-error">{{ student_form.section.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ student_form.roll_number.id_for_label }}">Roll number</label>
+                {{ student_form.roll_number }}
+                {% if student_form.roll_number.errors %}<p class="field-error">{{ student_form.roll_number.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- +2 only fields — disabled when hidden so they don't submit -->
+        <div id="studentPlus2Fields" class="hidden">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                <div>
+                    <label for="{{ student_form.faculty.id_for_label }}">Faculty <span class="text-[#C1502E]">*</span></label>
+                    {{ student_form.faculty }}
+                    {% if student_form.faculty.errors %}<p class="field-error">{{ student_form.faculty.errors|join:" " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="{{ student_form.shift.id_for_label }}">Shift <span class="text-[#C1502E]">*</span></label>
+                    {{ student_form.shift }}
+                    {% if student_form.shift.errors %}<p class="field-error">{{ student_form.shift.errors|join:" " }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ student_form.admission_date.id_for_label }}">Admission date <span class="text-[#C1502E]">*</span></label>
+                {{ student_form.admission_date }}
+                {% if student_form.admission_date.errors %}<p class="field-error">{{ student_form.admission_date.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ student_form.academic_year.id_for_label }}">Academic year <span class="text-[#C1502E]">*</span></label>
+                {{ student_form.academic_year }}
+                {% if student_form.academic_year.errors %}<p class="field-error">{{ student_form.academic_year.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ student_form.status.id_for_label }}">Status</label>
+                {{ student_form.status }}
+                {% if student_form.status.errors %}<p class="field-error">{{ student_form.status.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ student_form.profile_image.id_for_label }}">Profile photo</label>
+                {{ student_form.profile_image }}
+                {% if student_form.profile_image.errors %}<p class="field-error">{{ student_form.profile_image.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- ============ SECTION C: PARENT / GUARDIAN INFORMATION ============ -->
+        <div class="section-heading mt-6">Parent / Guardian Information</div>
+        <p class="text-xs text-muted2 -mt-2 mb-4">
+            If this email already belongs to a parent account, the student will simply be linked
+            to that existing parent — no duplicate account is created, and the fields below are ignored.
+        </p>
+
+        <!-- ---- Parent's account (User model) ---- -->
+        <div class="subsection-label">Parent account</div>
+
+        {% if parent_user_form.non_field_errors %}
+        <p class="field-error mb-3">{{ parent_user_form.non_field_errors|join:" " }}</p>
+        {% endif %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ parent_user_form.first_name.id_for_label }}">First name <span class="text-[#C1502E]">*</span></label>
+                {{ parent_user_form.first_name }}
+                {% if parent_user_form.first_name.errors %}<p class="field-error">{{ parent_user_form.first_name.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ parent_user_form.last_name.id_for_label }}">Last name <span class="text-[#C1502E]">*</span></label>
+                {{ parent_user_form.last_name }}
+                {% if parent_user_form.last_name.errors %}<p class="field-error">{{ parent_user_form.last_name.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ parent_user_form.username.id_for_label }}">Username <span class="text-[#C1502E]">*</span></label>
+                {{ parent_user_form.username }}
+                {% if parent_user_form.username.errors %}<p class="field-error">{{ parent_user_form.username.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ parent_user_form.email.id_for_label }}">Email address <span class="text-[#C1502E]">*</span></label>
+                {{ parent_user_form.email }}
+                {% if parent_user_form.email.errors %}<p class="field-error">{{ parent_user_form.email.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- ---- Parent details (Parent model) ---- -->
+        <div class="subsection-label mt-2">Parent details</div>
+
+        {% if parent_form.non_field_errors %}
+        <p class="field-error mb-3">{{ parent_form.non_field_errors|join:" " }}</p>
+        {% endif %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ parent_form.parent_id.id_for_label }}">Parent ID <span class="text-[#C1502E]">*</span></label>
+                {{ parent_form.parent_id }}
+                {% if parent_form.parent_id.errors %}<p class="field-error">{{ parent_form.parent_id.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ parent_form.gender.id_for_label }}">Gender</label>
+                {{ parent_form.gender }}
+                {% if parent_form.gender.errors %}<p class="field-error">{{ parent_form.gender.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ parent_form.contact_no.id_for_label }}">Contact number <span class="text-[#C1502E]">*</span></label>
+                {{ parent_form.contact_no }}
+                {% if parent_form.contact_no.errors %}<p class="field-error">{{ parent_form.contact_no.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ parent_form.relation.id_for_label }}">Relation to student <span class="text-[#C1502E]">*</span></label>
+                {{ parent_form.relation }}
+                {% if parent_form.relation.errors %}<p class="field-error">{{ parent_form.relation.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="{{ parent_form.address.id_for_label }}">Address</label>
+            {{ parent_form.address }}
+            {% if parent_form.address.errors %}<p class="field-error">{{ parent_form.address.errors|join:" " }}</p>{% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+            <div>
+                <label for="{{ parent_form.occupation.id_for_label }}">Occupation</label>
+                {{ parent_form.occupation }}
+                {% if parent_form.occupation.errors %}<p class="field-error">{{ parent_form.occupation.errors|join:" " }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="{{ parent_form.status.id_for_label }}">Status</label>
+                {{ parent_form.status }}
+                {% if parent_form.status.errors %}<p class="field-error">{{ parent_form.status.errors|join:" " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="{{ parent_form.profile_image.id_for_label }}">Profile photo</label>
+            {{ parent_form.profile_image }}
+            {% if parent_form.profile_image.errors %}<p class="field-error">{{ parent_form.profile_image.errors|join:" " }}</p>{% endif %}
+        </div>
+
+        <!-- ============ SUBMIT ============ -->
+        <button type="submit"
+            class="w-full mt-4 py-3 sm:py-2.5 bg-ink hover:bg-ink-2 text-white text-sm font-semibold rounded-lg transition-colors duration-150 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            <span class="text-center">Create student &amp; parent accounts</span>
+        </button>
+
+        <p class="text-center text-xs text-muted2 mt-4">
+            Already have an account? <a href="{% url 'login' %}" class="text-brand-500 font-medium hover:underline">Sign in</a>
+        </p>
+
+    </form>
+</div>
+
+<script>
+    // Student level -> toggle +2-only fields (faculty / shift).
+    // Fields are disabled while hidden so they aren't submitted (and so
+    // StudentForm's clean() doesn't demand faculty/shift for non-+2 students).
+    const studentLevel   = document.getElementById('{{ student_form.level.id_for_label }}');
+    const studentPlus2   = document.getElementById('studentPlus2Fields');
+    const studentFaculty = document.getElementById('{{ student_form.faculty.id_for_label }}');
+    const studentShift   = document.getElementById('{{ student_form.shift.id_for_label }}');
+
+    function toggleStudentPlus2() {
+        if (!studentLevel || !studentPlus2 || !studentFaculty || !studentShift) return;
+        const isPlus2 = studentLevel.value === 'plus2';
+        studentPlus2.classList.toggle('hidden', !isPlus2);
+        studentFaculty.disabled = !isPlus2;
+        studentShift.disabled   = !isPlus2;
+    }
+
+    if (studentLevel) {
+        studentLevel.addEventListener('change', toggleStudentPlus2);
+        toggleStudentPlus2(); // run on page load (also respects re-rendered values after a validation error)
+    }
+</script>
+
+</body>
+</html>

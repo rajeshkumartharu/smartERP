@@ -73,6 +73,18 @@ class Parent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # ---------------- OVERRIDE SAVE METHOD ----------------
+    def save(self, *args, **kwargs):
+        if not self.parent_id:
+            last_parent = Parent.objects.order_by('-id').first()
+            if last_parent and last_parent.parent_id:
+                last_number = int(last_parent.parent_id.replace('PAR', ''))
+                new_number = last_number + 1
+            else:
+                new_number = 1
+            self.parent_id = f"PAR{new_number:04d}"
+        super().save(*args, **kwargs)
+
     # ---------------- STRING ----------------
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name or ''} ({self.parent_id})"
