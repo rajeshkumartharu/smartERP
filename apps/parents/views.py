@@ -6,7 +6,7 @@ from django.shortcuts import render
 def parent_dashboard(request):
     try:
         profile = request.user.parent_profile
-        children = profile.students.select_related('user').all()
+        children = profile.students.select_related('user', 'school_class', 'section', 'level').all()
     except ObjectDoesNotExist:
         profile = None
         children = []

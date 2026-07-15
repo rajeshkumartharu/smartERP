@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}SmartSchool — Admin{% endblock %}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -442,6 +444,7 @@
     .sidebar{ width:86vw; min-width:0; }
   }
 </style>
+{% block extra_head %}{% endblock %}
 </head>
 <body>
 
@@ -472,7 +475,7 @@
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
       <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">All Students</a>
+        <a href="{% url 'student_list' %}" class="{% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">All Students</a>
         <a href="{% url 'register_student' %}" class="{% if request.resolver_match.url_name == 'student_add' %}active{% endif %}">Add Student</a>
         <a href="" class="{% if request.resolver_match.url_name == 'student_bulk_import' %}active{% endif %}">Bulk Import Students</a>
         <a href="" class="{% if request.resolver_match.url_name == 'student_promotion' %}active{% endif %}">Student Promotion</a>
@@ -489,7 +492,6 @@
       </button>
       <div class="nav-sub">
         <a href="" class="{% if request.resolver_match.url_name == 'parent_list' %}active{% endif %}">All Parents</a>
-        <a href="{% url 'register_parent' %}" class="{% if request.resolver_match.url_name == 'parent_add' %}active{% endif %}">Add Parent</a>
         <a href="" class="{% if request.resolver_match.url_name == 'parent_student_mapping' %}active{% endif %}">Parent-Student Mapping</a>
       </div>
     </div>
@@ -516,7 +518,7 @@
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
       <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">All Users</a>
+        <a href="{% url 'user_list' %}" class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">All Users</a>
         <a href="" class="{% if request.resolver_match.url_name == 'user_create' %}active{% endif %}">Create User</a>
         <a href="" class="{% if request.resolver_match.url_name == 'admin_user_list' %}active{% endif %}">Admin Users</a>
         <a href="" class="{% if request.resolver_match.url_name == 'password_reset_requests' %}active{% endif %}">Reset Password Requests</a>
@@ -532,15 +534,15 @@
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
       <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'academic_year_list' %}active{% endif %}">Academic Years</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'level_list' %}active{% endif %}">Levels</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'class_list' %}active{% endif %}">Classes</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'section_list' %}active{% endif %}">Sections</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'faculty_list' %}active{% endif %}">Faculties</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'shift_list' %}active{% endif %}">Shifts</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'subject_list' %}active{% endif %}">Subjects</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'subject_class_mapping' %}active{% endif %}">Subject-Class Mapping</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'teacher_subject_assignment' %}active{% endif %}">Teacher Subject Assignment</a>
+        <a href="{% url 'academic_year_list' %}" class="{% if request.resolver_match.url_name == 'academic_year_list' %}active{% endif %}">Academic Years</a>
+        <a href="{% url 'level_list' %}" class="{% if request.resolver_match.url_name == 'level_list' %}active{% endif %}">Levels</a>
+        <a href="{% url 'class_list' %}" class="{% if request.resolver_match.url_name == 'class_list' %}active{% endif %}">Classes</a>
+        <a href="{% url 'section_list' %}" class="{% if request.resolver_match.url_name == 'section_list' %}active{% endif %}">Sections</a>
+        <a href="{% url 'faculty_list' %}" class="{% if request.resolver_match.url_name == 'faculty_list' %}active{% endif %}">Faculties</a>
+        <a href="{% url 'shift_list' %}" class="{% if request.resolver_match.url_name == 'shift_list' %}active{% endif %}">Shifts</a>
+        <a href="{% url 'subject_list' %}" class="{% if request.resolver_match.url_name == 'subject_list' %}active{% endif %}">Subjects</a>
+        <a href="{% url 'subject_class_mapping_list' %}" class="{% if request.resolver_match.url_name == 'subject_class_mapping' %}active{% endif %}">Subject-Class Mapping</a>
+        <a href="{% url 'teacher_subject_assignment_list' %}" class="{% if request.resolver_match.url_name == 'teacher_subject_assignment' %}active{% endif %}">Teacher Subject Assignment</a>
       </div>
     </div>
 
@@ -566,8 +568,8 @@
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
       <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_overview' %}active{% endif %}">Daily Attendance Overview</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_reports' %}active{% endif %}">Attendance Reports</a>
+        <a href="{% url 'teacher_attendance_history' %}" class="{% if request.resolver_match.url_name == 'attendance_overview' %}active{% endif %}">Daily Attendance Overview</a>
+        <a href="{% url 'admin_attendance_list' %}" class="{% if request.resolver_match.url_name == 'attendance_reports' %}active{% endif %}">Attendance Reports</a>
         <a href="" class="{% if request.resolver_match.url_name == 'low_attendance_alerts' %}active{% endif %}">Low Attendance Alerts</a>
         <a href="" class="{% if request.resolver_match.url_name == 'attendance_settings' %}active{% endif %}">Attendance Settings</a>
       </div>
@@ -778,6 +780,7 @@ document.addEventListener('click', (e) => {
   if (!userMenu.contains(e.target)) userMenu.classList.remove('open');
 });
 </script>
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

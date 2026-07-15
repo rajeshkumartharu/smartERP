@@ -1,0 +1,59 @@
+{% extends "base/admin_base.html" %}
+{% block page_title %}Levels{% endblock %}
+{% block academics_content %}
+<div class="max-w-4xl">
+    <h1 class="text-xl font-medium text-slate-800 mb-1">Levels</h1>
+    <p class="text-sm text-slate-500 mb-6">Schooling levels, e.g. Primary, Lower Secondary, Secondary, +2 College.</p>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+        <h2 class="text-xs font-medium tracking-widest uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Add level</h2>
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                {% include "academics/_field.html" with field=form.name %}
+                {% include "academics/_field.html" with field=form.code %}
+                {% include "academics/_field.html" with field=form.order %}
+            </div>
+            <div class="flex gap-6 mb-4">
+                <label class="flex items-center gap-2 text-sm text-slate-600">{{ form.uses_faculty }} Uses faculty (e.g. Science/Management/Arts)</label>
+                <label class="flex items-center gap-2 text-sm text-slate-600">{{ form.uses_shift }} Uses shift (e.g. Morning/Day)</label>
+            </div>
+            <button type="submit" class="py-2.5 px-5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors">Add level</button>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+                <tr>
+                    <th class="text-left px-4 py-3">Order</th>
+                    <th class="text-left px-4 py-3">Name</th>
+                    <th class="text-left px-4 py-3">Code</th>
+                    <th class="text-left px-4 py-3">Faculty?</th>
+                    <th class="text-left px-4 py-3">Shift?</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for level in levels %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 text-slate-500">{{ level.order }}</td>
+                    <td class="px-4 py-3 font-medium text-slate-800">{{ level.name }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ level.get_code_display }}</td>
+                    <td class="px-4 py-3 text-slate-600">{% if level.uses_faculty %}Yes{% else %}—{% endif %}</td>
+                    <td class="px-4 py-3 text-slate-600">{% if level.uses_shift %}Yes{% else %}—{% endif %}</td>
+                    <td class="px-4 py-3 text-right">
+                        <form method="POST" action="{% url 'academics_delete' 'level' level.id %}" onsubmit="return confirm('Delete {{ level.name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">No levels yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

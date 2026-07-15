@@ -18,7 +18,7 @@
   <div class="sidebar d-flex flex-column p-3 gap-1">
     <div class="text-white fw-bold fs-5 mb-3 text-center"><i class="bi bi-mortarboard-fill"></i> SmartSchool</div>
     <a href="{% url 'admin_dashboard' %}" class="nav-link"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-    <a href="{% url 'register' %}"        class="nav-link"><i class="bi bi-person-plus me-2"></i>Register User</a>
+    <a href=""        class="nav-link"><i class="bi bi-person-plus me-2"></i>Register User</a>
     <a href="{% url 'user_list' %}"       class="nav-link active"><i class="bi bi-people me-2"></i>All Users</a>
     <hr class="border-secondary mt-auto mb-2" />
     <a href="{% url 'logout' %}" class="nav-link text-danger"><i class="bi bi-box-arrow-left me-2"></i>Logout</a>
@@ -28,7 +28,7 @@
   <div class="flex-grow-1 p-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h4 class="fw-bold mb-0">User Management</h4>
-      <a href="{% url 'register' %}" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Register New User</a>
+      <a href="" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i>Register New User</a>
     </div>
 
     {% if messages %}

@@ -27,8 +27,8 @@ urlpatterns = [
     path('teachers/', include('apps.teachers.urls')),
     path('parents/', include('apps.parents.urls')),
     path('admin/', include('apps.admin.urls')),
-    # path('academics/',  include('apps.academics.urls')),
-    # path('attendance/', include('apps.attendance.urls')),
+    path('academics/',  include('apps.academics.urls')),
+    path('attendance/', include('apps.attendances.urls')),
 ]
 
 

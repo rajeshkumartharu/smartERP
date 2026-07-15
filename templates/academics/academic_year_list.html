@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Years · SmartSchool</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom brand colours -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#EEF2FF',
+                            500: '#6366F1',
+                            600: '#4F46E5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased">
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- Page Header -->
+        <h1 class="text-xl font-medium text-slate-800 mb-1">Academic Years</h1>
+        <p class="text-sm text-slate-500 mb-6">
+            Only one year should be marked "current" — marking a new one automatically un-marks the rest.
+        </p>
+
+        <!-- Add Form -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+            <h2 class="text-xs font-medium tracking-widest uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">
+                Add academic year
+            </h2>
+            <form method="POST" novalidate>
+                <!-- CSRF token placeholder (Django) -->
+                {% comment %} {% csrf_token %} {% endcomment %}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Name</label>
+                        <input type="text" name="name" required
+                               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                    </div>
+                    <!-- Start Date -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Start Date</label>
+                        <input type="date" name="start_date" required
+                               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                    </div>
+                    <!-- End Date -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">End Date</label>
+                        <input type="date" name="end_date" required
+                               class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 items-end">
+                    <!-- Status -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Status</label>
+                        <select name="status"
+                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="planned">Planned</option>
+                        </select>
+                    </div>
+                    <!-- Current checkbox -->
+                    <label class="flex items-center gap-2 text-sm text-slate-600 mb-1">
+                        <input type="checkbox" name="is_current" class="rounded border-slate-300 text-brand-500 focus:ring-brand-500">
+                        Mark as current academic year
+                    </label>
+                </div>
+                <button type="submit"
+                        class="py-2.5 px-5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors">
+                    Add academic year
+                </button>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+                    <tr>
+                        <th class="text-left px-4 py-3">Name</th>
+                        <th class="text-left px-4 py-3">Start</th>
+                        <th class="text-left px-4 py-3">End</th>
+                        <th class="text-left px-4 py-3">Status</th>
+                        <th class="text-left px-4 py-3">Current</th>
+                        <th class="px-4 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <!-- Sample data – replace with Django loop -->
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3 font-medium text-slate-800">2024-2025</td>
+                        <td class="px-4 py-3 text-slate-600">2024-04-01</td>
+                        <td class="px-4 py-3 text-slate-600">2025-03-31</td>
+                        <td class="px-4 py-3 capitalize text-slate-600">active</td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs px-2 py-1 rounded-full bg-brand-50 text-brand-600 font-medium">Current</span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <form method="POST" action="#" onsubmit="return confirm('Delete this year?');">
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-3 font-medium text-slate-800">2023-2024</td>
+                        <td class="px-4 py-3 text-slate-600">2023-04-01</td>
+                        <td class="px-4 py-3 text-slate-600">2024-03-31</td>
+                        <td class="px-4 py-3 capitalize text-slate-600">inactive</td>
+                        <td class="px-4 py-3"></td>
+                        <td class="px-4 py-3 text-right">
+                            <form method="POST" action="#" onsubmit="return confirm('Delete this year?');">
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <!-- Empty state example – uncomment to test -->
+                    <!--
+                    <tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">No academic years yet.</td></tr>
+                    -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Optional: Django messages placeholder -->
+        <div class="mt-4">
+            <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 hidden">Success message</div>
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 hidden">Error message</div>
+        </div>
+
+        <p class="mt-8 text-xs text-slate-400 text-center border-t border-slate-200 pt-4">
+            SmartSchool ERP — Academic Year Management
+        </p>
+    </div>
+
+</body>
+</html>

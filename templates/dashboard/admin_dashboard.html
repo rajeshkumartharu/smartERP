@@ -1,919 +1,679 @@
+{% extends "base/admin_base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartSchool — Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --ink:#1B2A4A;
-    --ink-2:#233457;
-    --gold:#C9A227;
-    --gold-soft:#E7D9A8;
-    --paper:#F6F2E7;
-    --card:#FFFFFF;
-    --line:#E4DCC7;
-    --slate:#3A4256;
-    --muted:#8B93A7;
-    --success:#3F7D58;
-    --success-bg:#E7F1EA;
-    --danger:#C1502E;
-    --danger-bg:#F8E9E2;
-    --warn:#B98A1C;
-    --warn-bg:#FBF1DC;
-    --radius:10px;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  body{
-    font-family:'Inter', sans-serif;
-    background:var(--paper);
-    color:var(--slate);
-    display:flex;
-    min-height:100vh;
-    -webkit-font-smoothing:antialiased;
-  }
-  .mono{ font-family:'IBM Plex Mono', monospace; }
-  .serif{ font-family:'Fraunces', serif; }
 
-  /* ---------- SIDEBAR ---------- */
-  .sidebar{
-    width:272px;
-    min-width:272px;
-    background:var(--ink);
-    color:#DCE2F2;
-    display:flex;
-    flex-direction:column;
-    height:100vh;
-    position:sticky;
-    top:0;
-    transition:width .2s ease, min-width .2s ease;
-    overflow:hidden;
-  }
-  .sidebar.collapsed{ width:76px; min-width:76px; }
-  .sidebar-brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:22px 20px;
-    border-bottom:1px solid rgba(255,255,255,0.08);
-    white-space:nowrap;
-  }
-  .brand-mark{
-    width:38px; height:38px; min-width:38px;
-    border-radius:8px;
-    background:linear-gradient(155deg, var(--gold), #A9821B);
-    display:flex; align-items:center; justify-content:center;
-    color:var(--ink); font-family:'Fraunces',serif; font-weight:700; font-size:18px;
-    overflow:hidden;
-  }
-  .brand-mark img{
-    width:100%; height:100%; object-fit:cover; display:block;
-  }
-  .brand-text{ overflow:hidden; }
-  .brand-text .name{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; color:#fff; line-height:1.15;}
-  .brand-text .sub{ font-size:11px; color:var(--gold-soft); letter-spacing:.06em; text-transform:uppercase; margin-top:2px;}
-  .sidebar.collapsed .brand-text{ display:none; }
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8 py-6 w-full max-w-9xl mx-auto">
 
-  .nav-scroll{ flex:1; overflow-y:auto; padding:14px 12px 20px; }
-  .nav-scroll::-webkit-scrollbar{ width:6px; }
-  .nav-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.12); border-radius:4px; }
-
-  .nav-group{ margin-bottom:2px; border-radius:8px; }
-  .nav-group-btn{
-    width:100%;
-    display:flex; align-items:center; gap:11px;
-    background:none; border:none; cursor:pointer;
-    color:#C7CEE3;
-    padding:10px 10px;
-    border-radius:8px;
-    font-size:13px;
-    font-weight:600;
-    letter-spacing:.01em;
-    transition:background .15s ease, color .15s ease;
-    position:relative;
-  }
-  .nav-group-btn:hover{ background:rgba(255,255,255,0.06); color:#fff; }
-  .nav-group.open > .nav-group-btn{ color:#fff; background:rgba(201,162,39,0.12); }
-  .nav-group.open > .nav-group-btn .chev{ transform:rotate(90deg); }
-  .nav-icon{ width:17px; height:17px; flex:none; opacity:.9; }
-  .group-label{ flex:1; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .chev{ width:12px; height:12px; flex:none; transition:transform .18s ease; opacity:.6; }
-  .sidebar.collapsed .group-label, .sidebar.collapsed .chev{ display:none; }
-
-  /* Single (no-children) top level links, e.g. Dashboard */
-  .nav-link-single{
-    display:flex; align-items:center; gap:11px;
-    color:#C7CEE3;
-    text-decoration:none;
-    padding:10px 10px;
-    border-radius:8px;
-    font-size:13px;
-    font-weight:600;
-    letter-spacing:.01em;
-    transition:background .15s ease, color .15s ease;
-  }
-  .nav-link-single:hover{ background:rgba(255,255,255,0.06); color:#fff; }
-  .nav-link-single.active{ color:#fff; background:rgba(201,162,39,0.12); }
-
-  .nav-sub{
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .22s ease;
-    position:relative;
-  }
-  .nav-group.open > .nav-sub{ max-height:520px; }
-  .nav-sub::before{
-    content:'';
-    position:absolute;
-    left:24px; top:2px; bottom:6px;
-    width:1px;
-    background:rgba(201,162,39,0.28);
-  }
-  .sidebar.collapsed .nav-sub{ display:none; }
-  .nav-sub a{
-    display:block;
-    color:#AEB7CE;
-    text-decoration:none;
-    font-size:12.8px;
-    padding:8px 10px 8px 34px;
-    margin:1px 0;
-    border-radius:7px;
-    position:relative;
-    transition:background .13s ease, color .13s ease;
-  }
-  .nav-sub a:hover{ background:rgba(255,255,255,0.06); color:#fff; }
-  .nav-sub a.active{
-    background:rgba(201,162,39,0.14);
-    color:var(--gold-soft);
-    font-weight:600;
-  }
-  .nav-sub a.active::before{
-    content:'';
-    position:absolute; left:19px; top:50%; transform:translateY(-50%);
-    width:5px; height:5px; border-radius:50%;
-    background:var(--gold);
-  }
-
-  .sidebar-foot{
-    padding:14px 18px;
-    border-top:1px solid rgba(255,255,255,0.08);
-    font-size:11px;
-    color:#7C86A0;
-    white-space:nowrap;
-    overflow:hidden;
-  }
-  .sidebar.collapsed .sidebar-foot{ text-align:center; }
-  .sidebar.collapsed .sidebar-foot .full{ display:none; }
-
-  /* ---------- MAIN ---------- */
-  .main{ flex:1; min-width:0; display:flex; flex-direction:column; }
-
-  .topbar{
-    height:66px;
-    background:var(--card);
-    border-bottom:1px solid var(--line);
-    display:flex; align-items:center; gap:16px;
-    padding:0 24px;
-    position:sticky; top:0; z-index:5;
-  }
-  .icon-btn{
-    width:36px; height:36px; border-radius:8px;
-    border:1px solid var(--line); background:#fff;
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer; color:var(--slate);
-    transition:background .15s;
-  }
-  .icon-btn:hover{ background:var(--paper); }
-  .icon-btn svg{ width:17px; height:17px; }
-
-  .breadcrumb{ font-size:13px; color:var(--muted); }
-  .breadcrumb b{ color:var(--ink); font-weight:600; }
-
-  .search-box{
-    flex:1; max-width:380px;
-    display:flex; align-items:center; gap:8px;
-    background:var(--paper);
-    border:1px solid var(--line);
-    border-radius:8px;
-    padding:8px 12px;
-    margin-left:8px;
-  }
-  .search-box svg{ width:15px; height:15px; color:var(--muted); flex:none; }
-  .search-box input{
-    border:none; background:none; outline:none;
-    font-size:13px; width:100%; color:var(--slate); font-family:'Inter',sans-serif;
-  }
-
-  .topbar-right{ margin-left:auto; display:flex; align-items:center; gap:12px; }
-  .badge-dot{ position:relative; }
-  .badge-dot::after{
-    content:''; position:absolute; top:6px; right:6px;
-    width:7px; height:7px; border-radius:50%;
-    background:var(--danger); border:1.5px solid #fff;
-  }
-  .user-menu{ position:relative; }
-  .user-chip{
-    display:flex; align-items:center; gap:9px;
-    padding:5px 10px 5px 5px;
-    border-radius:24px;
-    border:1px solid var(--line);
-    cursor:pointer;
-    background:#fff;
-  }
-  .user-dropdown{
-    position:absolute;
-    top:calc(100% + 8px);
-    right:0;
-    min-width:200px;
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:10px;
-    box-shadow:0 10px 30px rgba(27,42,74,0.12);
-    padding:8px;
-    display:none;
-    z-index:20;
-  }
-  .user-menu.open .user-dropdown{ display:block; }
-  .user-dropdown a{
-    display:flex; align-items:center; gap:9px;
-    padding:9px 10px;
-    border-radius:7px;
-    font-size:13px;
-    color:var(--slate);
-    text-decoration:none;
-    font-weight:500;
-  }
-  .user-dropdown a:hover{ background:var(--paper); }
-  .user-dropdown a svg{ width:15px; height:15px; flex:none; }
-  .user-dropdown .dropdown-divider{ height:1px; background:var(--line); margin:6px 2px; }
-  .user-dropdown a.logout-link{ color:var(--danger); }
-  .user-avatar{
-    width:30px; height:30px; border-radius:50%;
-    background:linear-gradient(155deg,#2C3D63,var(--ink));
-    color:var(--gold-soft);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces',serif; font-weight:600; font-size:13px;
-  }
-  .user-chip .u-name{ font-size:12.5px; font-weight:600; color:var(--ink); line-height:1.1; }
-  .user-chip .u-role{ font-size:10.5px; color:var(--muted); }
-
-  .content{ padding:26px 28px 50px; max-width:1400px; }
-
-  .page-head{
-    display:flex; align-items:flex-end; justify-content:space-between;
-    margin-bottom:22px; flex-wrap:wrap; gap:14px;
-  }
-  .page-head h1{
-    font-family:'Fraunces', serif; font-weight:600; font-size:27px; color:var(--ink);
-    letter-spacing:-.01em;
-  }
-  .page-head .desc{ font-size:13px; color:var(--muted); margin-top:4px; }
-  .term-tag{
-    display:inline-flex; align-items:center; gap:6px;
-    background:var(--card); border:1px solid var(--line);
-    padding:7px 13px; border-radius:24px;
-    font-size:12px; color:var(--ink); font-weight:600;
-  }
-  .term-tag .dot{ width:6px; height:6px; border-radius:50%; background:var(--success); }
-
-  /* Stat cards - report card style */
-  .stat-grid{
-    display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px;
-  }
-  .stat-card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:18px 18px 16px;
-    position:relative;
-    overflow:hidden;
-  }
-  .stat-card::before{
-    content:'';
-    position:absolute; top:0; left:0; width:100%; height:3px;
-    background:var(--accent, var(--gold));
-  }
-  .stat-card .s-top{ display:flex; justify-content:space-between; align-items:flex-start; }
-  .stat-card .s-icon{
-    width:34px; height:34px; border-radius:8px;
-    background:var(--accent-bg, var(--gold-soft));
-    display:flex; align-items:center; justify-content:center;
-  }
-  .stat-card .s-icon svg{ width:17px; height:17px; color:var(--accent-ink,#8A6B12); }
-  .stat-card .s-trend{ font-size:11px; font-weight:600; padding:3px 7px; border-radius:20px; }
-  .trend-up{ background:var(--success-bg); color:var(--success); }
-  .trend-down{ background:var(--danger-bg); color:var(--danger); }
-  .stat-card .s-value{ font-family:'IBM Plex Mono',monospace; font-size:28px; font-weight:600; color:var(--ink); margin-top:14px; }
-  .stat-card .s-label{ font-size:12.5px; color:var(--muted); margin-top:3px; }
-
-  /* Two column layout */
-  .grid-2{ display:grid; grid-template-columns:1.5fr 1fr; gap:16px; margin-bottom:16px; align-items:start; }
-
-  .panel{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:20px;
-  }
-  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-  .panel-head h3{ font-family:'Fraunces',serif; font-size:16px; font-weight:600; color:var(--ink); }
-  .panel-head .link{ font-size:12px; color:var(--gold); font-weight:600; text-decoration:none; }
-
-  /* Attendance bar chart (CSS) */
-  .chart-wrap{ display:flex; align-items:flex-end; gap:14px; height:170px; padding-top:10px; border-bottom:1px solid var(--line); }
-  .chart-col{ flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:6px; }
-  .bar-stack{ width:60%; display:flex; flex-direction:column; justify-content:flex-end; height:100%; border-radius:5px 5px 0 0; overflow:hidden; }
-  .bar-present{ background:var(--ink); }
-  .bar-absent{ background:var(--gold); }
-  .chart-col .day-label{ font-size:11px; color:var(--muted); margin-top:8px; font-weight:600; }
-  .chart-legend{ display:flex; gap:18px; margin-top:14px; font-size:12px; color:var(--slate); }
-  .chart-legend span{ display:inline-flex; align-items:center; gap:6px; }
-  .chart-legend i{ width:9px; height:9px; border-radius:2px; display:inline-block; }
-
-  /* At risk table */
-  .table-scroll{ width:100%; overflow-x:auto; }
-  table{ width:100%; border-collapse:collapse; font-size:13px; }
-  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:600; padding:0 10px 10px; border-bottom:1px solid var(--line); }
-  td{ padding:11px 10px; border-bottom:1px solid var(--line); color:var(--slate); }
-  tr:last-child td{ border-bottom:none; }
-  .stu{ display:flex; align-items:center; gap:9px; }
-  .stu-avatar{
-    width:28px; height:28px; border-radius:50%; background:var(--paper);
-    border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces',serif; font-size:11px; font-weight:600; color:var(--ink);
-  }
-  .stu-name{ font-weight:600; color:var(--ink); font-size:12.8px; }
-  .stu-class{ font-size:11px; color:var(--muted); }
-  .pill{ display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
-  .pill-danger{ background:var(--danger-bg); color:var(--danger); }
-  .pill-warn{ background:var(--warn-bg); color:var(--warn); }
-
-  /* Notifications + Recommendations row */
-  .grid-2b{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .feed-item{ display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line); }
-  .feed-item:last-child{ border-bottom:none; padding-bottom:0; }
-  .feed-dot{ width:32px; height:32px; border-radius:8px; flex:none; display:flex; align-items:center; justify-content:center; }
-  .feed-dot svg{ width:15px; height:15px; }
-  .feed-title{ font-size:13px; font-weight:600; color:var(--ink); }
-  .feed-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
-  .feed-time{ font-size:11px; color:var(--muted); white-space:nowrap; margin-left:auto; }
-
-  .rec-item{ display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px dashed var(--line); }
-  .rec-item:last-child{ border-bottom:none; padding-bottom:0; }
-  .rec-num{
-    font-family:'Fraunces',serif; font-weight:600; font-size:13px;
-    width:26px; height:26px; border-radius:50%; background:var(--ink); color:var(--gold-soft);
-    display:flex; align-items:center; justify-content:center; flex:none;
-  }
-  .rec-title{ font-size:13px; font-weight:600; color:var(--ink); }
-  .rec-sub{ font-size:12px; color:var(--muted); margin-top:2px; line-height:1.4; }
-
-  @media (max-width: 1100px){
-    .content{ padding:22px 18px 40px; }
-    .stat-grid{ grid-template-columns:repeat(2,1fr); }
-    .grid-2, .grid-2b{ grid-template-columns:1fr; }
-  }
-
-  /* ---------- TABLET / MOBILE: off-canvas sidebar ---------- */
-  @media (max-width: 900px){
-    body{ overflow-x:hidden; }
-    .sidebar{
-      position:fixed;
-      left:0; top:0;
-      width:272px; min-width:272px;
-      height:100vh;
-      z-index:60;
-      transform:translateX(-100%);
-      transition:transform .25s ease;
-      box-shadow:2px 0 24px rgba(0,0,0,0.18);
-    }
-    .sidebar.mobile-open{ transform:translateX(0); }
-
-    .sidebar-overlay{
-      display:none;
-      position:fixed; inset:0;
-      background:rgba(14,19,33,0.45);
-      z-index:55;
-    }
-    .sidebar-overlay.show{ display:block; }
-
-    .main{ width:100%; min-width:0; }
-    .topbar{ padding:0 16px; gap:10px; }
-    .breadcrumb{ display:none; }
-    .search-box{ display:none; }
-    .content{ padding:18px 16px 40px; }
-    .page-head h1{ font-size:23px; }
-  }
-
-  @media (max-width: 640px){
-    .topbar{ height:60px; }
-    .page-head{ align-items:flex-start; }
-    .page-head .desc{ font-size:12px; }
-    .term-tag{ font-size:11px; padding:6px 10px; }
-
-    .stat-grid{ grid-template-columns:1fr 1fr; gap:12px; }
-    .stat-card{ padding:14px 14px 12px; }
-    .stat-card .s-value{ font-size:22px; margin-top:10px; }
-    .stat-card .s-icon{ width:30px; height:30px; }
-
-    .panel{ padding:16px; }
-    .panel-head h3{ font-size:15px; }
-
-    .chart-wrap{ overflow-x:auto; gap:10px; padding-bottom:4px; }
-    .chart-col{ min-width:32px; }
-
-    .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    table{ min-width:460px; }
-
-    .user-chip{ padding:5px; border-radius:50%; }
-    .user-chip .u-name, .user-chip .u-role{ display:none; }
-    .user-dropdown{ right:-8px; }
-  }
-
-  @media (max-width: 420px){
-    .stat-grid{ grid-template-columns:1fr; }
-    .content{ padding:14px 12px 32px; }
-    .sidebar{ width:86vw; min-width:0; }
-  }
-</style>
-</head>
-<body>
-
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-mark" id="brandMark">
-      <img src="{% static 'images/logo.png' %}" alt="SmartSchool logo">
-    </div>
-    <div class="brand-text">
-      <div class="name">SmartSchool</div>
-      <div class="sub">Admin Console</div>
-    </div>
-  </div>
-
-  <nav class="nav-scroll" id="navScroll">
-
-    <!-- Dashboard (single link, no submenu) -->
-    <a class="nav-link-single {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-      <span class="group-label">Dashboard</span>
-    </a>
-
-    <!-- Students -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
-        <span class="group-label">Students</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'student_list' %}active{% endif %}">All Students</a>
-        <a href="{% url 'register_student' %}" class="{% if request.resolver_match.url_name == 'student_add' %}active{% endif %}">Add Student</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'student_bulk_import' %}active{% endif %}">Bulk Import Students</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'student_promotion' %}active{% endif %}">Student Promotion</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'student_alumni' %}active{% endif %}">Alumni / Inactive Students</a>
-      </div>
-    </div>
-
-    <!-- Parents -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span class="group-label">Parents</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'parent_list' %}active{% endif %}">All Parents</a>
-        <a href="{% url 'register_parent' %}" class="{% if request.resolver_match.url_name == 'parent_add' %}active{% endif %}">Add Parent</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'parent_student_mapping' %}active{% endif %}">Parent-Student Mapping</a>
-      </div>
-    </div>
-
-    <!-- Teachers -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20v14H6l-4 4z"/><path d="M8 8h8M8 12h5"/></svg>
-        <span class="group-label">Teachers</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'teacher_list' %}active{% endif %}">All Teachers</a>
-        <a href="{% url 'register_teacher' %}" class="{% if request.resolver_match.url_name == 'teacher_add' %}active{% endif %}">Add Teacher</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'teacher_assignment' %}active{% endif %}">Teacher Assignment</a>
-      </div>
-    </div>
-
-    <!-- Users & Roles -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-        <span class="group-label">Users &amp; Roles</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'user_list' %}active{% endif %}">All Users</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'user_create' %}active{% endif %}">Create User</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'admin_user_list' %}active{% endif %}">Admin Users</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'password_reset_requests' %}active{% endif %}">Reset Password Requests</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'access_control' %}active{% endif %}">Access Control</a>
-      </div>
-    </div>
-
-    <!-- Academic Structure -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5M2 8v8M22 8v8"/></svg>
-        <span class="group-label">Academic Structure</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'academic_year_list' %}active{% endif %}">Academic Years</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'level_list' %}active{% endif %}">Levels</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'class_list' %}active{% endif %}">Classes</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'section_list' %}active{% endif %}">Sections</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'faculty_list' %}active{% endif %}">Faculties</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'shift_list' %}active{% endif %}">Shifts</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'subject_list' %}active{% endif %}">Subjects</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'subject_class_mapping' %}active{% endif %}">Subject-Class Mapping</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'teacher_subject_assignment' %}active{% endif %}">Teacher Subject Assignment</a>
-      </div>
-    </div>
-
-    <!-- Timetable -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="4" x2="8" y2="2"/><line x1="16" y1="4" x2="16" y2="2"/></svg>
-        <span class="group-label">Timetable</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'class_timetable' %}active{% endif %}">Class Timetable</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'teacher_timetable' %}active{% endif %}">Teacher Timetable</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'exam_schedule' %}active{% endif %}">Exam Schedule</a>
-      </div>
-    </div>
-
-    <!-- Attendance -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span class="group-label">Attendance</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_overview' %}active{% endif %}">Daily Attendance Overview</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_reports' %}active{% endif %}">Attendance Reports</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'low_attendance_alerts' %}active{% endif %}">Low Attendance Alerts</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_settings' %}active{% endif %}">Attendance Settings</a>
-      </div>
-    </div>
-
-    <!-- Examinations -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-        <span class="group-label">Examinations</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'exam_list' %}active{% endif %}">Exams</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'result_list' %}active{% endif %}">Results</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'grade_rules' %}active{% endif %}">Grade Rules</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'report_cards' %}active{% endif %}">Report Cards</a>
-      </div>
-    </div>
-
-    <!-- Student Status Evaluation -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-7"/></svg>
-        <span class="group-label">Student Status Evaluation</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'student_status_dashboard' %}active{% endif %}">Student Status Dashboard</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'at_risk_students' %}active{% endif %}">At Risk Students</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_marks_analysis' %}active{% endif %}">Attendance vs Marks Analysis</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'performance_trends' %}active{% endif %}">Performance Trends</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'recommendations' %}active{% endif %}">Recommendations</a>
-      </div>
-    </div>
-
-    <!-- Notifications -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="group-label">Notifications</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'announcements' %}active{% endif %}">Announcements</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'send_notification' %}active{% endif %}">Send Notification</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'notification_history' %}active{% endif %}">Notification History</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'notification_templates' %}active{% endif %}">Templates</a>
-      </div>
-    </div>
-
-    <!-- Reports -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-        <span class="group-label">Reports</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'student_reports' %}active{% endif %}">Student Reports</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_reports_full' %}active{% endif %}">Attendance Reports</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'result_reports' %}active{% endif %}">Result Reports</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'performance_reports' %}active{% endif %}">Performance Reports</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'teacher_reports' %}active{% endif %}">Teacher Reports</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'export_center' %}active{% endif %}">Export Center</a>
-      </div>
-    </div>
-
-    <!-- Settings -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span class="group-label">Settings</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'school_profile' %}active{% endif %}">School Profile</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'academic_settings' %}active{% endif %}">Academic Settings</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_rules' %}active{% endif %}">Attendance Rules</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'result_rules' %}active{% endif %}">Result Rules</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'notification_settings' %}active{% endif %}">Notification Settings</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'branding_settings' %}active{% endif %}">Branding</a>
-      </div>
-    </div>
-
-    <!-- Audit Logs -->
-    <div class="nav-group">
-      <button class="nav-group-btn" type="button">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="8" x2="17" y2="8"/><line x1="9" y1="12" x2="17" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/><line x1="6" y1="8" x2="6.01" y2="8"/><line x1="6" y1="12" x2="6.01" y2="12"/><line x1="6" y1="16" x2="6.01" y2="16"/></svg>
-        <span class="group-label">Audit Logs</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <div class="nav-sub">
-        <a href="" class="{% if request.resolver_match.url_name == 'activity_logs' %}active{% endif %}">Activity Logs</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'attendance_logs' %}active{% endif %}">Attendance Logs</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'result_logs' %}active{% endif %}">Result Logs</a>
-        <a href="" class="{% if request.resolver_match.url_name == 'login_logs' %}active{% endif %}">Login Logs</a>
-      </div>
-    </div>
-
-  </nav>
-
-  <div class="sidebar-foot">
-    <span class="full">© {% now "Y" %} SmartSchool</span>
-  </div>
-</aside>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<div class="main">
-  <header class="topbar">
-    <button class="icon-btn" id="toggleSidebar" title="Toggle sidebar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <div class="breadcrumb"><b>{{ page_title|default:"Dashboard" }}</b></div>
-
-    <div class="search-box">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Search students, teachers, records…">
-    </div>
-
-    <div class="topbar-right">
-      <button class="icon-btn badge-dot" title="Notifications">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      </button>
-      <button class="icon-btn" title="Settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-      <div class="user-menu" id="userMenu">
-        <div class="user-chip" id="userChipToggle">
-          <div class="user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
-          <div>
-            <div class="u-name">{{ user.get_full_name|default:user.username }}</div>
-            <div class="u-role">{{ user.get_role_display|default:"Admin" }}</div>
-          </div>
-        </div>
-        <div class="user-dropdown">
-          <a href="{% url 'change_password' %}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Change Password
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="{% url 'logout' %}" class="logout-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Logout
-          </a>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <main class="content">
-    <div class="page-head">
-      <div>
-        <h1>{{ page_title|default:"Dashboard" }}</h1>
-        <div class="desc">Overview for {% now "l, j F Y" %}{% if current_session %} · {{ current_session.name }}{% endif %}</div>
-      </div>
-      {% if current_session %}
-      <div class="term-tag"><span class="dot"></span> {{ current_session.name }}</div>
-      {% endif %}
-    </div>
-
-    <section class="stat-grid">
-      <div class="stat-card" style="--accent:#1B2A4A; --accent-bg:#E7EAF2; --accent-ink:#1B2A4A;">
-        <div class="s-top">
-          <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        </div>
-        <div class="s-value">{{ total_students }}</div>
-        <div class="s-label">Total Students</div>
-      </div>
-
-      <div class="stat-card" style="--accent:#3F7D58; --accent-bg:#E7F1EA; --accent-ink:#3F7D58;">
-        <div class="s-top">
-          <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></div>
-        </div>
-        <div class="s-value">{{ total_teachers }}</div>
-        <div class="s-label">Teaching Staff</div>
-      </div>
-
-      <div class="stat-card" style="--accent:#C9A227; --accent-bg:#F6ECC9; --accent-ink:#8A6B12;">
-        <div class="s-top">
-          <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-          {% if present_percentage is not None %}
-          <span class="s-trend {% if present_percentage >= 90 %}trend-up{% else %}trend-down{% endif %}">{{ present_percentage }}%</span>
-          {% endif %}
-        </div>
-        <div class="s-value">{{ present_today }}</div>
-        <div class="s-label">Present Today{% if marked_today %} of {{ marked_today }} marked{% endif %}</div>
-      </div>
-
-      <div class="stat-card" style="--accent:#C1502E; --accent-bg:#F8E9E2; --accent-ink:#C1502E;">
-        <div class="s-top">
-          <div class="s-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-        </div>
-        <div class="s-value">{{ at_risk_count }}</div>
-        <div class="s-label">At-Risk Students (&lt;75% attendance)</div>
-      </div>
-    </section>
-
-    <section class="grid-2">
-      <div class="panel">
-        <div class="panel-head">
-          <h3>Weekly Attendance</h3>
-          <a class="link" href="">Full report →</a>
-        </div>
-        <div class="chart-wrap">
-          {% for day in weekly_attendance %}
-          <div class="chart-col">
-            <div class="bar-stack" style="height:{% if day.has_data %}100{% else %}4{% endif %}%;">
-              <div class="bar-present" style="height:{{ day.present_pct }}%;"></div>
-              <div class="bar-absent" style="height:{{ day.absent_pct }}%;"></div>
-            </div>
-            <div class="day-label">{{ day.label }}</div>
-          </div>
-          {% empty %}
-          <p style="color:var(--muted); font-size:13px;">No attendance recorded in the last 7 days.</p>
-          {% endfor %}
-        </div>
-        <div class="chart-legend">
-          <span><i style="background:var(--ink);"></i> Present</span>
-          <span><i style="background:var(--gold);"></i> Absent</span>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h3>At-Risk Students</h3>
-          <a class="link" href="">View all →</a>
-        </div>
-        {% if at_risk_students %}
-        <div class="table-scroll">
-        <table>
-          <thead><tr><th>Student</th><th>Attendance</th><th>Status</th></tr></thead>
-          <tbody>
-            {% for row in at_risk_students %}
-            <tr>
-              <td>
-                <div class="stu">
-                  <div class="stu-avatar">{{ row.student.user.first_name|slice:":1"|upper }}{{ row.student.user.last_name|slice:":1"|upper }}</div>
-                  <div>
-                    <div class="stu-name">{{ row.student.user.get_full_name|default:row.student.user.username }}</div>
-                    <div class="stu-class">{{ row.section }}</div>
-                  </div>
+    <!-- ============================================= -->
+    <!-- 1. EXECUTIVE WELCOME – Glassmorphism Hero     -->
+    <!-- ============================================= -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 mb-8 shadow-xl">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <div class="flex items-center gap-2 text-indigo-100 text-sm">
+                    <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">🎯 Live</span>
+                    <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">{{ current_academic_year }}</span>
+                    <span class="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">{{ current_semester }}</span>
                 </div>
-              </td>
-              <td class="mono">{{ row.percentage }}%</td>
-              <td>
-                {% if row.percentage < 70 %}
-                <span class="pill pill-danger">Critical</span>
-                {% else %}
-                <span class="pill pill-warn">Watch</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+                <h1 class="text-3xl md:text-4xl font-bold text-white mt-3">
+                    Good {{ greeting }}, {{ request.user.get_full_name|default:"Admin" }}
+                </h1>
+                <p class="text-indigo-100 text-lg mt-1 flex items-center gap-2">
+                    <span>🏫</span> {{ school_name }} · {{ current_session }}
+                </p>
+                <div class="mt-3 flex flex-wrap gap-4 text-sm text-indigo-200">
+                    <span>📅 {{ current_date|date:"l, d M Y" }}</span>
+                    <span>🕒 {{ current_time|time:"h:i A" }}</span>
+                </div>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center gap-3">
+                <div class="bg-white/20 backdrop-blur-md rounded-xl px-5 py-3 text-white text-center">
+                    <p class="text-xs uppercase tracking-wider opacity-80">Today’s Attendance</p>
+                    <p class="text-2xl font-bold">{{ attendance_percentage }}%</p>
+                </div>
+                <div class="bg-white/20 backdrop-blur-md rounded-xl px-5 py-3 text-white text-center">
+                    <p class="text-xs uppercase tracking-wider opacity-80">Pending</p>
+                    <p class="text-2xl font-bold">{{ pending_attendance }}</p>
+                </div>
+            </div>
         </div>
-        {% else %}
-        <p style="color:var(--muted); font-size:13px;">No students are currently below the 75% attendance threshold.</p>
-        {% endif %}
-      </div>
-    </section>
+        <!-- Decorative blobs -->
+        <div class="absolute top-0 right-0 w-72 h-72 bg-white opacity-10 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-white opacity-10 rounded-full translate-y-1/2 -translate-x-1/3"></div>
+    </div>
 
-    <section class="grid-2b">
-      <div class="panel" style="grid-column:1 / -1;">
-        <div class="panel-head">
-          <h3>Recent Notifications</h3>
-          <a class="link" href="">History →</a>
+    <!-- ============================================= -->
+    <!-- 2. KPI CARDS – Premium Tiles with Icons       -->
+    <!-- ============================================= -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4 mb-8">
+        <!-- Card macro for consistency -->
+        {% with items="total_students,total_teachers,total_parents,total_classes,total_sections,total_subjects,total_academic_years,total_active_users" %}
+        {% with labels="Students,Teachers,Parents,Classes,Sections,Subjects,Acad.Years,Active Users" %}
+        {% with colors="blue,green,purple,yellow,indigo,red,teal,pink" %}
+        {% for item in items.split %}
+        <div class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 border border-gray-100 hover:border-indigo-200 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-{{ colors.split|slice:forloop.counter0|first }}-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">{{ labels.split|slice:forloop.counter0|first }}</span>
+                    <div class="w-8 h-8 rounded-full bg-{{ colors.split|slice:forloop.counter0|first }}-100 flex items-center justify-center text-{{ colors.split|slice:forloop.counter0|first }}-600 group-hover:scale-110 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <!-- Icon varies, but we use a generic one for brevity; you can map specific icons -->
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-2xl font-bold text-gray-800 mt-2">{{ var|default:0 }}</p>
+                <div class="flex items-center mt-1 text-xs text-green-500">
+                    <span>↑ 12%</span>
+                    <span class="text-gray-400 ml-1">vs last month</span>
+                </div>
+            </div>
         </div>
-
-        {% for note in recent_notifications %}
-        <div class="feed-item">
-          <div class="feed-dot" style="background:{% if note.email_sent %}var(--success-bg){% else %}var(--danger-bg){% endif %};">
-            {% if note.email_sent %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-            {% else %}
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            {% endif %}
-          </div>
-          <div>
-            <div class="feed-title">{{ note.get_notification_type_display }}</div>
-            <div class="feed-sub">{{ note.student.user.get_full_name|default:note.student.user.username }}{% if note.email_sent %} · sent to {{ note.sent_to }}{% else %} · delivery failed{% endif %}</div>
-          </div>
-          <div class="feed-time">{{ note.sent_at|timesince }} ago</div>
-        </div>
-        {% empty %}
-        <p style="color:var(--muted); font-size:13px;">No notifications have been sent yet.</p>
         {% endfor %}
-      </div>
-    </section>
-  </main>
+        {% endwith %}
+        {% endwith %}
+        {% endwith %}
+    </div>
+
+    <!-- Today's Attendance Breakdown -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 border border-gray-100">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">✅</div>
+            <div><p class="text-xs text-gray-400">Present</p><p class="text-xl font-bold text-gray-800">{{ today_present }}</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 border border-gray-100">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">❌</div>
+            <div><p class="text-xs text-gray-400">Absent</p><p class="text-xl font-bold text-gray-800">{{ today_absent }}</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 border border-gray-100">
+            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">⏰</div>
+            <div><p class="text-xs text-gray-400">Late</p><p class="text-xl font-bold text-gray-800">{{ today_late }}</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 border border-gray-100">
+            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">🏠</div>
+            <div><p class="text-xs text-gray-400">Leave</p><p class="text-xl font-bold text-gray-800">{{ today_leave }}</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3 border border-gray-100">
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">⏳</div>
+            <div><p class="text-xs text-gray-400">Pending</p><p class="text-xl font-bold text-gray-800">{{ pending_attendance }}</p></div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 3. REAL-TIME STUDENT STATUS – Glass Cards     -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> Real-Time Student Status
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-5 border border-green-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-green-700">🌟 Excellent</span><span class="text-2xl font-bold text-green-800">{{ excellent_students|length }}</span></div>
+                <div class="w-full bg-green-200 h-1.5 rounded-full mt-2"><div class="bg-green-600 h-1.5 rounded-full" style="width:70%"></div></div>
+            </div>
+            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-5 border border-blue-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-blue-700">👍 Good</span><span class="text-2xl font-bold text-blue-800">{{ good_students|length }}</span></div>
+                <div class="w-full bg-blue-200 h-1.5 rounded-full mt-2"><div class="bg-blue-600 h-1.5 rounded-full" style="width:50%"></div></div>
+            </div>
+            <div class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-5 border border-yellow-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-yellow-700">📊 Average</span><span class="text-2xl font-bold text-yellow-800">{{ average_students|length }}</span></div>
+                <div class="w-full bg-yellow-200 h-1.5 rounded-full mt-2"><div class="bg-yellow-600 h-1.5 rounded-full" style="width:30%"></div></div>
+            </div>
+            <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-5 border border-orange-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-orange-700">⚠️ At Risk</span><span class="text-2xl font-bold text-orange-800">{{ at_risk_students|length }}</span></div>
+                <div class="w-full bg-orange-200 h-1.5 rounded-full mt-2"><div class="bg-orange-600 h-1.5 rounded-full" style="width:20%"></div></div>
+            </div>
+            <div class="bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl p-5 border border-red-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-red-700">🚨 Critical</span><span class="text-2xl font-bold text-red-800">{{ critical_students|length }}</span></div>
+                <div class="w-full bg-red-200 h-1.5 rounded-full mt-2"><div class="bg-red-600 h-1.5 rounded-full" style="width:10%"></div></div>
+            </div>
+            <div class="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-5 border border-purple-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-purple-700">📉 Below 75% Att.</span><span class="text-2xl font-bold text-purple-800">{{ below_attendance|length }}</span></div>
+                <div class="w-full bg-purple-200 h-1.5 rounded-full mt-2"><div class="bg-purple-600 h-1.5 rounded-full" style="width:40%"></div></div>
+            </div>
+            <div class="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-5 border border-indigo-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-indigo-700">📉 Declining</span><span class="text-2xl font-bold text-indigo-800">{{ declining_performance|length }}</span></div>
+            </div>
+            <div class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-5 border border-pink-200 shadow-sm hover:shadow-md transition">
+                <div class="flex items-center justify-between"><span class="text-sm font-medium text-pink-700">🧑‍🏫 Needs Counselling</span><span class="text-2xl font-bold text-pink-800">{{ requiring_counselling|length }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 4. ACADEMIC PERFORMANCE CHARTS                -->
+    <!-- ============================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Top Performing Classes</h3>
+            <canvas id="topClassesChart" height="180"></canvas>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Grade Distribution</h3>
+            <canvas id="gradeDistributionChart" height="180"></canvas>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Exam Performance Trend</h3>
+            <canvas id="examTrendChart" height="180"></canvas>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Subject-wise Performance</h3>
+            <canvas id="subjectPerformanceChart" height="180"></canvas>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 5. ATTENDANCE ANALYTICS CHARTS               -->
+    <!-- ============================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Attendance Trend (30 days)</h3>
+            <canvas id="attendanceTrendChart" height="180"></canvas>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Class-wise Attendance</h3>
+            <canvas id="classAttendanceChart" height="180"></canvas>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 6. ADMISSION ANALYTICS                        -->
+    <!-- ============================================= -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-2">Monthly Admissions</h3>
+            <canvas id="admissionTrendChart" height="180"></canvas>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition flex items-center justify-center">
+            <div class="text-center">
+                <p class="text-sm text-gray-500">Student Growth</p>
+                <p class="text-3xl font-bold text-indigo-600">+24%</p>
+                <p class="text-xs text-gray-400">vs last academic year</p>
+                <div class="mt-4 flex items-center gap-2 justify-center">
+                    <span class="inline-block w-3 h-3 rounded-full bg-green-500"></span>
+                    <span class="text-sm">Active: {{ total_students }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 7. TEACHER ANALYTICS                          -->
+    <!-- ============================================= -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">👨‍🏫</div>
+            <div><p class="text-xs text-gray-400">Total Teachers</p><p class="text-xl font-bold text-gray-800">{{ total_teachers }}</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">✅</div>
+            <div><p class="text-xs text-gray-400">Active</p><p class="text-xl font-bold text-gray-800">{{ active_teachers }}</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">🏖️</div>
+            <div><p class="text-xs text-gray-400">On Leave</p><p class="text-xl font-bold text-gray-800">{{ teachers_on_leave }}</p></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600">⏳</div>
+            <div><p class="text-xs text-gray-400">Pending Attendance</p><p class="text-xl font-bold text-gray-800">{{ pending_attendance }}</p></div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 8. QUICK ACTIONS – Icon Grid                 -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> Quick Actions
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Action item -->
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                </div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Register Student</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center text-green-600 group-hover:scale-110 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                </div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Register Teacher</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center text-purple-600 group-hover:scale-110 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                </div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Register Parent</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center text-yellow-600 group-hover:scale-110 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Manage Timetable</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-red-100 to-red-200 rounded-2xl flex items-center justify-center text-red-600 group-hover:scale-110 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                </div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Take Attendance</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
+                </div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Create Exam</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center text-gray-600 group-hover:scale-110 transition">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                </div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Generate Reports</p>
+            </a>
+            <!-- Add more as needed -->
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 9. RECENT STUDENT ADMISSIONS – Table         -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> Recent Admissions
+            </h2>
+            <a href="#" class="text-sm text-indigo-600 hover:underline font-medium">View All →</a>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admission No.</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guardian</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for student in recent_students %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <img src="{% if student.photo %}{{ student.photo.url }}{% else %}https://ui-avatars.com/api/?name={{ student.user.get_full_name|urlencode }}&background=6366f1&color=fff&size=36&rounded=true{% endif %}" alt="{{ student.user.get_full_name }}" class="w-9 h-9 rounded-full ring-2 ring-indigo-100">
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ student.user.get_full_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ student.admission_number }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ student.current_class.name }} - {{ student.current_section.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ student.guardian.user.get_full_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ student.enrollment_date|date:"d M Y" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'student_detail' student.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
+                                <a href="{% url 'student_edit' student.pk %}" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
+                                <a href="{% url 'student_delete' student.pk %}" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure?')">Delete</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">No recent admissions.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 10. RECENT NOTICES                            -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> Recent Notices
+            </h2>
+            <a href="#" class="text-sm text-indigo-600 hover:underline font-medium">View All →</a>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Published By</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for notice in recent_notices %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ notice.title }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.category|default:"General" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if notice.priority == 'high' %}bg-red-100 text-red-800
+                                    {% elif notice.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-green-100 text-green-800{% endif %}">
+                                    {{ notice.priority|title }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.published_by.get_full_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ notice.published_date|date:"d M Y" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Published</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="#" class="text-indigo-600 hover:text-indigo-900 mr-2">View</a>
+                                <a href="#" class="text-blue-600 hover:text-blue-900 mr-2">Edit</a>
+                                <a href="#" class="text-red-600 hover:text-red-900">Delete</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No recent notices.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 11. RECENT ACTIVITIES TIMELINE                -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> Recent Activities
+        </h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <ul class="space-y-4">
+                {% for activity in recent_activities %}
+                <li class="flex items-start gap-4">
+                    <div class="flex-shrink-0 mt-1">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-400 ring-2 ring-indigo-200"></span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-800">
+                            <span class="font-semibold">{{ activity.user.get_full_name }}</span>
+                            {{ activity.action }}
+                            {% if activity.target %}<span class="text-gray-500">on <span class="font-medium">{{ activity.target }}</span></span>{% endif %}
+                        </p>
+                        <p class="text-xs text-gray-400">{{ activity.timestamp|timesince }} ago</p>
+                    </div>
+                    <div class="text-xs text-gray-400">{{ activity.timestamp|date:"h:i A" }}</div>
+                </li>
+                {% empty %}
+                <li class="text-center text-gray-500">No recent activities.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 12. SYSTEM ALERTS                             -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> System Alerts
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-5 border border-red-200 shadow-sm flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-red-200 flex items-center justify-center text-red-600 flex-shrink-0">⚠️</div>
+                <div><p class="text-sm font-semibold text-red-800">Attendance Pending</p><p class="text-xs text-red-600">{{ attendance_pending_alerts }} classes pending today</p></div>
+            </div>
+            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-5 border border-yellow-200 shadow-sm flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-yellow-200 flex items-center justify-center text-yellow-600 flex-shrink-0">📉</div>
+                <div><p class="text-sm font-semibold text-yellow-800">Low Performance</p><p class="text-xs text-yellow-600">{{ low_performance_alerts }} students below threshold</p></div>
+            </div>
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 border border-blue-200 shadow-sm flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-600 flex-shrink-0">📅</div>
+                <div><p class="text-sm font-semibold text-blue-800">Upcoming Exams</p><p class="text-xs text-blue-600">{{ upcoming_exams|length }} exams in next 7 days</p></div>
+            </div>
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-5 border border-purple-200 shadow-sm flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-600 flex-shrink-0">👨‍🏫</div>
+                <div><p class="text-sm font-semibold text-purple-800">Unassigned Teachers</p><p class="text-xs text-purple-600">{{ teachers_not_assigned }} teachers not assigned to class</p></div>
+            </div>
+            <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl p-5 border border-pink-200 shadow-sm flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center text-pink-600 flex-shrink-0">📋</div>
+                <div><p class="text-sm font-semibold text-pink-800">Missing Results</p><p class="text-xs text-pink-600">{{ missing_results }} exams without results</p></div>
+            </div>
+            <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl p-5 border border-teal-200 shadow-sm flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-teal-200 flex items-center justify-center text-teal-600 flex-shrink-0">💰</div>
+                <div><p class="text-sm font-semibold text-teal-800">Fee Reminder</p><p class="text-xs text-teal-600">12 students have pending fees</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 13. UPCOMING EVENTS                           -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> Upcoming Events
+        </h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <ul class="divide-y divide-gray-200">
+                <li class="py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">📝</div>
+                        <div><p class="text-sm font-medium text-gray-800">Mid-Term Exams</p><p class="text-xs text-gray-500">15 Mar – 20 Mar 2025</p></div>
+                    </div>
+                    <span class="px-3 py-1 text-xs rounded-full bg-purple-100 text-purple-700 font-medium">Exam</span>
+                </li>
+                <li class="py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">👥</div>
+                        <div><p class="text-sm font-medium text-gray-800">Parent-Teacher Meeting</p><p class="text-xs text-gray-500">25 Mar 2025, 10:00 AM</p></div>
+                    </div>
+                    <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-medium">Meeting</span>
+                </li>
+                <li class="py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">🏖️</div>
+                        <div><p class="text-sm font-medium text-gray-800">Spring Break</p><p class="text-xs text-gray-500">1 Apr – 5 Apr 2025</p></div>
+                    </div>
+                    <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">Holiday</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 14. REPORTS SECTION                           -->
+    <!-- ============================================= -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span> Reports
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition">📊</div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Attendance Report</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center text-green-600 group-hover:scale-110 transition">📈</div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Performance Report</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-2xl flex items-center justify-center text-yellow-600 group-hover:scale-110 transition">👨‍🎓</div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Student Report</p>
+            </a>
+            <a href="#" class="group bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
+                <div class="w-14 h-14 mx-auto bg-gradient-to-br from-red-100 to-red-200 rounded-2xl flex items-center justify-center text-red-600 group-hover:scale-110 transition">👨‍🏫</div>
+                <p class="mt-2 text-sm font-medium text-gray-700">Teacher Report</p>
+            </a>
+        </div>
+        <div class="mt-4 flex flex-wrap gap-3">
+            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">📄 Generate PDF</button>
+            <button class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">📊 Export Excel</button>
+            <button class="bg-gray-600 hover:bg-gray-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-sm">🖨️ Print Report</button>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 15. PERFORMANCE WIDGETS                       -->
+    <!-- ============================================= -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Top Attendance Class</p>
+            <p class="text-xl font-bold text-gray-800">{{ top_attendance_class.name|default:"N/A" }}</p>
+            <div class="flex items-center gap-2 mt-1"><span class="text-sm text-green-600">{{ top_attendance_class.att_pct|floatformat:2 }}%</span><span class="text-xs text-gray-400">attendance</span></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Lowest Attendance Class</p>
+            <p class="text-xl font-bold text-gray-800">{{ lowest_attendance_class.name|default:"N/A" }}</p>
+            <div class="flex items-center gap-2 mt-1"><span class="text-sm text-red-600">{{ lowest_attendance_class.att_pct|floatformat:2 }}%</span><span class="text-xs text-gray-400">attendance</span></div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+            <p class="text-xs text-gray-400 uppercase tracking-wider">Highest Performing Student</p>
+            <p class="text-xl font-bold text-gray-800">{{ highest_performing_student.user.get_full_name|default:"N/A" }}</p>
+            <div class="flex items-center gap-2 mt-1"><span class="text-sm text-indigo-600">{{ highest_performing_student.avg_marks|floatformat:2 }}%</span><span class="text-xs text-gray-400">avg marks</span></div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- 16. DASHBOARD FOOTER                          -->
+    <!-- ============================================= -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-wrap items-center justify-between text-sm text-gray-500">
+        <div><span class="font-medium">Academic Year:</span> {{ current_academic_year }}</div>
+        <div><span class="font-medium">Last Updated:</span> {{ current_date|date:"d M Y H:i" }}</div>
+        <div><span class="font-medium">Logged in:</span> {{ request.user.get_full_name }}</div>
+        <div><span class="font-medium">Version:</span> {{ system_version }}</div>
+        <div><span class="font-medium">School:</span> {{ school_name }}</div>
+    </div>
+
 </div>
 
+<!-- ============================================ -->
+<!-- Chart.js Scripts                             -->
+<!-- ============================================ -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// ---- Sidebar group expand/collapse ----
-document.querySelectorAll('.nav-group-btn').forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    btn.closest('.nav-group').classList.toggle('open');
-  });
-});
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Top Classes
+        const ctx1 = document.getElementById('topClassesChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: [{% for cls in class_performance %}'{{ cls.name }}',{% endfor %}],
+                datasets: [{
+                    label: 'Avg Marks (%)',
+                    data: [{% for cls in class_performance %}{{ cls.avg_marks|floatformat:2 }},{% endfor %}],
+                    backgroundColor: ['rgba(99,102,241,0.7)', 'rgba(52,211,153,0.7)', 'rgba(251,191,36,0.7)', 'rgba(244,63,94,0.7)'],
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
+        });
 
-// Auto-open the group that contains the active sub-link
-document.querySelectorAll('.nav-sub a.active').forEach(function (a) {
-  a.closest('.nav-group').classList.add('open');
-});
+        // 2. Grade Distribution
+        const ctx2 = document.getElementById('gradeDistributionChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['A', 'B', 'C', 'D', 'F'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: ['#4F46E5', '#22C55E', '#FBBF24', '#FB923C', '#EF4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
 
-// ---- Sidebar collapse (desktop) / off-canvas (mobile) ----
-const sidebarEl = document.getElementById('sidebar');
-const overlayEl = document.getElementById('sidebarOverlay');
-const MOBILE_BREAKPOINT = 900;
-const isMobileView = () => window.innerWidth <= MOBILE_BREAKPOINT;
+        // 3. Exam Trend
+        const ctx3 = document.getElementById('examTrendChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                datasets: [{
+                    label: 'Average Marks',
+                    data: [72, 68, 75, 80, 78],
+                    borderColor: '#8B5CF6',
+                    tension: 0.3,
+                    fill: false
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
 
-function closeMobileSidebar(){
-  sidebarEl.classList.remove('mobile-open');
-  overlayEl.classList.remove('show');
-}
+        // 4. Subject-wise Performance
+        const ctx4 = document.getElementById('subjectPerformanceChart').getContext('2d');
+        new Chart(ctx4, {
+            type: 'radar',
+            data: {
+                labels: ['Math', 'Science', 'English', 'History', 'Art'],
+                datasets: [{
+                    label: 'Class Average',
+                    data: [75, 82, 68, 70, 88],
+                    backgroundColor: 'rgba(99,102,241,0.2)',
+                    borderColor: '#6366F1',
+                    pointBackgroundColor: '#6366F1'
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
 
-document.getElementById('toggleSidebar').addEventListener('click', () => {
-  if (isMobileView()) {
-    sidebarEl.classList.toggle('mobile-open');
-    overlayEl.classList.toggle('show');
-  } else {
-    sidebarEl.classList.toggle('collapsed');
-  }
-});
+        // 5. Attendance Trend
+        const ctx5 = document.getElementById('attendanceTrendChart').getContext('2d');
+        const attendanceData = {{ attendance_trend|safe }};
+        const labels = attendanceData.map(d => d.date);
+        new Chart(ctx5, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Present', data: attendanceData.map(d => d.present), borderColor: '#22C55E', tension: 0.3 },
+                    { label: 'Absent', data: attendanceData.map(d => d.absent), borderColor: '#EF4444', tension: 0.3 },
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
 
-overlayEl.addEventListener('click', closeMobileSidebar);
+        // 6. Class-wise Attendance (bar)
+        const ctx6 = document.getElementById('classAttendanceChart').getContext('2d');
+        // Assume class names from class_performance
+        new Chart(ctx6, {
+            type: 'bar',
+            data: {
+                labels: [{% for cls in class_performance %}'{{ cls.name }}',{% endfor %}],
+                datasets: [{
+                    label: 'Attendance %',
+                    data: [{% for cls in class_performance %}{{ cls.att_pct|floatformat:2 }},{% endfor %}],
+                    backgroundColor: 'rgba(52,211,153,0.7)',
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
+        });
 
-// Closing the drawer after tapping a nav link makes the mobile flow feel native
-document.getElementById('navScroll').addEventListener('click', (e) => {
-  if (isMobileView() && e.target.tagName === 'A') closeMobileSidebar();
-});
-
-// Reset state cleanly when crossing the mobile/desktop breakpoint
-window.addEventListener('resize', () => {
-  if (!isMobileView()) closeMobileSidebar();
-});
-
-// ---- User menu dropdown (logout / change password) ----
-const userMenu = document.getElementById('userMenu');
-document.getElementById('userChipToggle').addEventListener('click', (e) => {
-  e.stopPropagation();
-  userMenu.classList.toggle('open');
-});
-document.addEventListener('click', (e) => {
-  if (!userMenu.contains(e.target)) userMenu.classList.remove('open');
-});
+        // 7. Admission Trend
+        const ctx7 = document.getElementById('admissionTrendChart').getContext('2d');
+        const admissionData = {{ admission_trend|safe }};
+        const monthLabels = admissionData.map(d => `${d.month}/${d.year}`);
+        new Chart(ctx7, {
+            type: 'bar',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Admissions',
+                    data: admissionData.map(d => d.count),
+                    backgroundColor: 'rgba(99,102,241,0.7)',
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    });
 </script>
-
-</body>
-</html>
+{% endblock content %}

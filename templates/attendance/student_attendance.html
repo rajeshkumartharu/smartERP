@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>My Attendance Report</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <div class="card"><div class="card-body">
+                <h6>Attendance %</h6>
+                <h4>{{ attendance_percentage }}%</h4>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card"><div class="card-body">
+                <h6>Total</h6>
+                <h4>{{ summary.total|default:0 }}</h4>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card"><div class="card-body">
+                <h6>Present</h6>
+                <h4>{{ summary.present|default:0 }}</h4>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card"><div class="card-body">
+                <h6>Absent</h6>
+                <h4>{{ summary.absent|default:0 }}</h4>
+            </div></div>
+        </div>
+        <div class="col-md-1">
+            <div class="card"><div class="card-body">
+                <h6>Late</h6>
+                <h4>{{ summary.late|default:0 }}</h4>
+            </div></div>
+        </div>
+        <div class="col-md-2">
+            <div class="card"><div class="card-body">
+                <h6>Leave</h6>
+                <h4>{{ summary.leave|default:0 }}</h4>
+            </div></div>
+        </div>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Class</th>
+                <th>Section</th>
+                <th>Status</th>
+                <th>Remark</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record.attendance_session.date }}</td>
+                <td>{{ record.attendance_session.school_class }}</td>
+                <td>{{ record.attendance_session.section }}</td>
+                <td>{{ record.get_status_display }}</td>
+                <td>{{ record.remark }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No attendance records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

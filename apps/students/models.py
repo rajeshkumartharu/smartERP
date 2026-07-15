@@ -1,5 +1,6 @@
 from django.db import models
 from apps.accounts.models import User
+from apps.academics.models import Level, SchoolClass, Section, AcademicYear
 
 
 class Student(models.Model):
@@ -27,16 +28,9 @@ class Student(models.Model):
     profile_image = models.ImageField(upload_to='students/', blank=True, null=True)
 
     # ---------------- ACADEMIC STRUCTURE ----------------
-    LEVEL_CHOICES = (
-        ('primary', 'Primary (1–5)'),
-        ('lower_secondary', 'Lower Secondary (6–8)'),
-        ('secondary', 'Secondary (9–10)'),
-        ('plus2', '+2 College (11–12)'),
-    )
-    level = models.CharField(max_length=30, choices=LEVEL_CHOICES)
-
-    class_name = models.CharField(max_length=20)
-    section = models.CharField(max_length=10, blank=True, null=True)
+    level = models.ForeignKey(Level, on_delete=models.PROTECT, related_name='students')
+    school_class = models.ForeignKey(SchoolClass, on_delete=models.PROTECT, related_name='students')
+    section = models.ForeignKey(Section, on_delete=models.PROTECT, related_name='students', blank=True, null=True)
 
     faculty = models.CharField(
         max_length=100,
@@ -57,11 +51,20 @@ class Student(models.Model):
         help_text="Only applicable for +2 students"
     )
 
-    roll_number = models.CharField(max_length=20, blank=True, null=True)
+    roll_no = models.CharField(max_length=20, blank=True, null=True)
 
     # ---------------- ACADEMIC INFO ----------------
     admission_date = models.DateField()
-    academic_year = models.CharField(max_length=20)
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.PROTECT, related_name='students')
+
+    @property
+    def class_name(self):
+        return self.school_class.name if self.school_class else ""
+
+    @property
+    def roll_number(self):
+        return self.roll_no
+
 
     # ---------------- STATUS ----------------
     STATUS_CHOICES = (

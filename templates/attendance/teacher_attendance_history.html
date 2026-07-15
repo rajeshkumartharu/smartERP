@@ -1,0 +1,63 @@
+{% extends "base/admin_base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Attendance History</h2>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <p><strong>Academic Year:</strong> {{ assignment.academic_year }}</p>
+            <p><strong>Class:</strong> {{ assignment.school_class }}</p>
+            <p><strong>Section:</strong> {{ assignment.section }}</p>
+        </div>
+    </div>
+
+    <form method="get" class="row g-3 mb-3">
+        <div class="col-md-3">
+            <label>Date</label>
+            {{ filter_form.date }}
+        </div>
+        <div class="col-md-2">
+            <label>Month</label>
+            {{ filter_form.month }}
+        </div>
+        <div class="col-md-2">
+            <label>Year</label>
+            {{ filter_form.year }}
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-secondary" type="submit">Filter</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>Late</th>
+                    <th>Leave</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                <tr>
+                    <td>{{ session.date }}</td>
+                    <td>{{ session.present_count }}</td>
+                    <td>{{ session.absent_count }}</td>
+                    <td>{{ session.late_count }}</td>
+                    <td>{{ session.leave_count }}</td>
+                    <td>{{ session.total_students }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">No attendance records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

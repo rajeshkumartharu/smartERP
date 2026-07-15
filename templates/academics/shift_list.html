@@ -1,0 +1,51 @@
+{% extends "base/admin_base.html" %}
+{% block page_title %}Shifts{% endblock %}
+{% block academics_content %}
+<div class="max-w-4xl">
+    <h1 class="text-xl font-medium text-slate-800 mb-1">Shifts</h1>
+    <p class="text-sm text-slate-500 mb-6">e.g. Morning Shift, Day Shift.</p>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+        <h2 class="text-xs font-medium tracking-widest uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Add shift</h2>
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                {% include "academics/_field.html" with field=form.name %}
+                {% include "academics/_field.html" with field=form.start_time %}
+                {% include "academics/_field.html" with field=form.end_time %}
+            </div>
+            <button type="submit" class="py-2.5 px-5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors">Add shift</button>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+                <tr>
+                    <th class="text-left px-4 py-3">Name</th>
+                    <th class="text-left px-4 py-3">Start</th>
+                    <th class="text-left px-4 py-3">End</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for shift in shifts %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-medium text-slate-800">{{ shift.name }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ shift.start_time|default:"—" }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ shift.end_time|default:"—" }}</td>
+                    <td class="px-4 py-3 text-right">
+                        <form method="POST" action="{% url 'academics_delete' 'shift' shift.id %}" onsubmit="return confirm('Delete {{ shift.name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">No shifts yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

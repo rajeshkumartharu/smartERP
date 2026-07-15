@@ -7,9 +7,9 @@ username: subash
 password: Asusvivobook@#123
 
 parent:
-username: subash
-password: Su2@sh123
+username: rajeshkumar
+password: R@j5sh123
 
 Student:
-username:rajesh
-password: R@j5sh123
+username:bipana
+password: 2iP@na123

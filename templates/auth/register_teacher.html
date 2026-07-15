@@ -1,53 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartSchool — Register Teacher</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Fraunces', 'serif'],
-                        mono: ['IBM Plex Mono', 'monospace'],
+{% extends "base/admin_base.html" %}
+
+{% block title %}SmartSchool — Register Teacher{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                    serif: ['Fraunces', 'serif'],
+                    mono: ['IBM Plex Mono', 'monospace'],
+                },
+                colors: {
+                    brand: {
+                        50:  '#F1EEDD',
+                        100: '#E7D9A8',
+                        500: '#C9A227',
+                        600: '#A9821B',
+                        700: '#8A6B12',
                     },
-                    colors: {
-                        brand: {
-                            50:  '#F1EEDD',
-                            100: '#E7D9A8',
-                            500: '#C9A227',
-                            600: '#A9821B',
-                            700: '#8A6B12',
-                        },
-                        ink: {
-                            DEFAULT: '#1B2A4A',
-                            2: '#233457',
-                        },
-                        paper: '#F6F2E7',
-                        line: '#E4DCC7',
-                        slate2: '#3A4256',
-                        muted2: '#8B93A7',
-                    }
+                    ink: {
+                        DEFAULT: '#1B2A4A',
+                        2: '#233457',
+                    },
+                    paper: '#F6F2E7',
+                    line: '#E4DCC7',
+                    slate2: '#3A4256',
+                    muted2: '#8B93A7',
                 }
             }
         }
-    </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        input[type="file"] { padding: 6px 8px; }
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #C9A227 !important;
-            box-shadow: 0 0 0 1px #C9A227;
-        }
-    </style>
-</head>
-<body class="min-h-screen bg-paper flex items-start justify-center py-6 sm:py-10 px-3 sm:px-4">
+    }
+</script>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    input[type="file"] { padding: 6px 8px; }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #C9A227 !important;
+        box-shadow: 0 0 0 1px #C9A227;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-paper flex items-start justify-center py-6 sm:py-10 px-3 sm:px-4">
 
 <div class="w-full max-w-2xl bg-white rounded-2xl border border-line p-5 sm:p-8 shadow-sm">
 
@@ -264,7 +265,10 @@
 
     </form>
 </div>
+</div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
     // ── Teacher level → toggle +2 fields ──────────────────────────
     const teachingLevel  = document.getElementById('teachingLevel');
@@ -275,16 +279,13 @@
     function toggleTeacherPlus2() {
         const isPlus2 = teachingLevel.value === 'plus2';
         teacherPlus2.classList.toggle('hidden', !isPlus2);
-        // KEY FIX: disable fields when hidden so they are not submitted
         teacherFaculty.disabled = !isPlus2;
         teacherShift.disabled   = !isPlus2;
     }
 
     if (teachingLevel) {
         teachingLevel.addEventListener('change', toggleTeacherPlus2);
-        toggleTeacherPlus2(); // run on page load
+        toggleTeacherPlus2();
     }
 </script>
-
-</body>
-</html>
+{% endblock %}

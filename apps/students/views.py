@@ -15,3 +15,4 @@ def student_dashboard(request):
         'profile': profile,
     }
     return render(request, 'dashboard/student_dashboard.html', context)
+

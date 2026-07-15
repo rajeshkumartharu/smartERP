@@ -1,0 +1,47 @@
+{% extends "base/admin_base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="bg-white shadow overflow-hidden rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-800">
+                {{ student.user.get_full_name }}
+                <span class="text-sm font-normal text-gray-500 ml-2">({{ student.student_id }})</span>
+            </h1>
+            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full
+                {% if student.status == 'active' %}bg-green-100 text-green-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ student.get_status_display }}
+            </span>
+        </div>
+        <div class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><span class="font-medium text-gray-500">Level:</span> {{ student.get_level_display }}</div>
+            <div><span class="font-medium text-gray-500">Class:</span> {{ student.class_name }} {{ student.section|default:'' }}</div>
+            <div><span class="font-medium text-gray-500">Faculty:</span> {{ student.faculty|default:'-' }}</div>
+            <div><span class="font-medium text-gray-500">Shift:</span> {{ student.get_shift_display|default:'-' }}</div>
+            <div><span class="font-medium text-gray-500">Roll Number:</span> {{ student.roll_number|default:'-' }}</div>
+            <div><span class="font-medium text-gray-500">Admission Date:</span> {{ student.admission_date }}</div>
+            <div><span class="font-medium text-gray-500">Academic Year:</span> {{ student.academic_year }}</div>
+            <div><span class="font-medium text-gray-500">Contact:</span> {{ student.contact_no|default:'-' }}</div>
+            <div class="md:col-span-2"><span class="font-medium text-gray-500">Address:</span> {{ student.address|default:'-' }}</div>
+            {% if student.profile_image %}
+            <div class="md:col-span-2">
+                <span class="font-medium text-gray-500">Profile Image:</span><br>
+                <img src="{{ student.profile_image.url }}" alt="Profile" class="mt-2 h-32 w-32 object-cover rounded-full">
+            </div>
+            {% endif %}
+        </div>
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex space-x-3">
+            <a href="{% url 'students:student_update' student.pk %}"
+               class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition">Edit</a>
+            <a href="{% url 'students:student_toggle_active' student.pk %}"
+               onclick="return confirm('Are you sure?')"
+               class="{% if student.status == 'active' %}bg-red-500 hover:bg-red-600{% else %}bg-green-500 hover:bg-green-600{% endif %} text-white font-medium py-2 px-4 rounded-lg transition">
+                {% if student.status == 'active' %}Deactivate{% else %}Activate{% endif %}
+            </a>
+            <a href="{% url 'students:student_list' %}"
+               class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition">Back to list</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

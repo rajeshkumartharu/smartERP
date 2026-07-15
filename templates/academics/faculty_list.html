@@ -1,0 +1,51 @@
+{% extends "base/admin_base.html" %}
+{% block page_title %}Faculties{% endblock %}
+{% block academics_content %}
+<div class="max-w-4xl">
+    <h1 class="text-xl font-medium text-slate-800 mb-1">Faculties</h1>
+    <p class="text-sm text-slate-500 mb-6">e.g. Science, Management, Arts, Law — only meaningful for levels where "Uses faculty" is enabled.</p>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+        <h2 class="text-xs font-medium tracking-widest uppercase text-slate-400 border-b border-slate-100 pb-2 mb-4">Add faculty</h2>
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                {% include "academics/_field.html" with field=form.level %}
+                {% include "academics/_field.html" with field=form.name %}
+                {% include "academics/_field.html" with field=form.code %}
+            </div>
+            <button type="submit" class="py-2.5 px-5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors">Add faculty</button>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+                <tr>
+                    <th class="text-left px-4 py-3">Name</th>
+                    <th class="text-left px-4 py-3">Level</th>
+                    <th class="text-left px-4 py-3">Code</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for faculty in faculties %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-medium text-slate-800">{{ faculty.name }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ faculty.level.name }}</td>
+                    <td class="px-4 py-3 text-slate-500">{{ faculty.code|default:"—" }}</td>
+                    <td class="px-4 py-3 text-right">
+                        <form method="POST" action="{% url 'academics_delete' 'faculty' faculty.id %}" onsubmit="return confirm('Delete {{ faculty.name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">No faculties yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

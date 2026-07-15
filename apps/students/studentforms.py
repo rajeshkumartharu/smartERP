@@ -44,14 +44,12 @@ class StudentForm(forms.ModelForm):
                 'class': 'form-select'
             }),
 
-            'class_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter Class'
+            'school_class': forms.Select(attrs={
+                'class': 'form-select'
             }),
 
-            'section': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter Section'
+            'section': forms.Select(attrs={
+                'class': 'form-select'
             }),
 
             'faculty': forms.TextInput(attrs={
@@ -63,7 +61,7 @@ class StudentForm(forms.ModelForm):
                 'class': 'form-select'
             }),
 
-            'roll_number': forms.TextInput(attrs={
+            'roll_no': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter Roll Number'
             }),
@@ -74,9 +72,8 @@ class StudentForm(forms.ModelForm):
                 'class': 'form-control'
             }),
 
-            'academic_year': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Example: 2025/2026'
+            'academic_year': forms.Select(attrs={
+                'class': 'form-select'
             }),
 
             # ---------------- STATUS ----------------
@@ -110,8 +107,9 @@ class StudentForm(forms.ModelForm):
         faculty = cleaned_data.get('faculty')
         shift = cleaned_data.get('shift')
 
-        # +2 validation
-        if level == 'plus2':
+        # +2 validation (level is now a Level model instance)
+        level_code = level.code if level else None
+        if level_code == 'plus2':
             if not faculty:
                 self.add_error(
                     'faculty',

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+# pyrefly: ignore [missing-import]
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,13 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'apps.academics',
     'apps.accounts',
     'apps.core',
     'apps.students',
     'apps.teachers',
     'apps.parents',
-    # 'apps.academics',
-    # 'apps.attendance',
+    'apps.attendances',
     'apps.subjects',
     'apps.admin',
 ]
